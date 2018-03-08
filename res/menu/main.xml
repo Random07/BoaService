@@ -1,6 +1,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    tools:context="com.chuan.boa_new.MainActivity" >
+    tools:context="com.mifi.boa.MainActivity" >
 
     <item
         android:id="@+id/action_settings"

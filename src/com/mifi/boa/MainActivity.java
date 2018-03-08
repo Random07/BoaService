@@ -1,4 +1,4 @@
-package com.chuan.boa_new;
+package com.mifi.boa;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -22,7 +22,7 @@ public class MainActivity extends Activity {
 			public void onClick(View arg0) {
 				// TODO Auto-generated method stub
 				Toast.makeText(getApplicationContext(), "click!", Toast.LENGTH_LONG).show();
-				Intent startIntent = new Intent(MainActivity.this, MyService.class);
+				Intent startIntent = new Intent(MainActivity.this, BoaService.class);
 				startService(startIntent);
 			}
 		});

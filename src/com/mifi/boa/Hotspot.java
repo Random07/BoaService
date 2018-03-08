@@ -1,4 +1,4 @@
-package com.chuan.boa_new;
+package com.mifi.boa;
 
 public class Hotspot {
 	
