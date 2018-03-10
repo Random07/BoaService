@@ -44,12 +44,12 @@ public class BoaService extends Service {
     private WifiManager mWifiManager;
     private WifiConfiguration mWifiConfig = null;
     private Context mContext;
-    Account mAccount = Account.getInstance();
-    ConnectCustomer mConnectCustomer = ConnectCustomer.getInstance();
-    DeviceInfo mDeviceInfo = DeviceInfo.getInstance();
-    UserData mUserData = UserData.getInstance();
-    ApnSettings mApnSettings = ApnSettings.getInstance();
-    WiFiSettings mWiFiSettings = WiFiSettings.getInstance();
+	private Account mAccount;
+	private ConnectCustomer mConnectCustomer;
+	private DeviceInfo mDeviceInfo;
+	private UserData mUserData;
+	private ApnSettings mApnSettings;
+	private WiFiSettings mWiFiSettings;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -61,10 +61,21 @@ public class BoaService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         // TODO Auto-generated method stub
         android.util.Log.d(TAG,"Service start");
+		initInstance();
         startWifiAp();
         new ServerListener().start();		
         return START_STICKY;
     }
+
+	private void initInstance() {
+        mContext = getApplication();
+	    mAccount = Account.getInstance(mContext);
+        mConnectCustomer = ConnectCustomer.getInstance();
+        mDeviceInfo = DeviceInfo.getInstance(mContext);
+        mUserData = UserData.getInstance(mContext);
+        mApnSettings = ApnSettings.getInstance();
+        mWiFiSettings = WiFiSettings.getInstance(mContext);
+	  }
 
     /**
       *   Socket connet with gci 
@@ -142,34 +153,34 @@ public class BoaService extends Service {
                             mFlushString = mDeviceInfo.getDeviceInfo(); 
                         break;
                         case "DataLimit":
-                            mFlushString = mUserData.setDataLimit(); 
+                            mFlushString = mUserData.setDataLimit(string); 
                         break;
                         case "DataStatic":
                             mFlushString = mUserData.getDataStatic(); 
                         break;
                         case "NetworkType":
-                            mFlushString = mUserData.setNetworkType(); 
+                             mUserData.setNetworkType(string); 
                         break;
                         case "ApnShow":
                             mFlushString = mApnSettings.getApns(); 
                         break;
                         case "ApnChange":
-                            mFlushString = ApnSettings.getInstance().setSelectedApn(); 
+                            mFlushString = mApnSettings.setSelectedApn(string); 
                         break;
                         case "ApnAdd":
-                            mFlushString = ApnSettings.getInstance().addApn(); 
+                            mFlushString = mApnSettings.addApn(string); 
                         break;
                         case "WIFIShow":
-                            mFlushString = WiFiSettings.getInstance().getWiFiInfo(); 
+                            mFlushString = mWiFiSettings.getWiFiInfo(); 
                         break;
                         case "WIFISetting":
-                            mFlushString = WiFiSettings.getInstance().setWiFiInfo(); 
+                            mFlushString = mWiFiSettings.setWiFiInfo(string); 
                         break;
                         case "ReBoot":
-                            mFlushString = DeviceInfo.getInstance().setReBoot(); 
+                            mFlushString = mDeviceInfo.setReBoot(); 
                         break;
                         case "ReFactory":
-                            mFlushString = DeviceInfo.getInstance().setReFactory(); 
+                            mFlushString = mDeviceInfo.setReFactory(); 
                         break;
                         default:
                             android.util.Log.d(TAG,mAction+" not support!");
@@ -208,6 +219,7 @@ public class BoaService extends Service {
         }
         return "";
     }
+	
 
     public void ConfigWifiAp(String mSSID ,String mPassword,int mBandIndex ,int mSecurityTypeIndex ) {       
         if (mWifiManager.getWifiApState() == WifiManager.WIFI_AP_STATE_ENABLED) {
@@ -254,33 +266,4 @@ public class BoaService extends Service {
         }
     }
 
-
-     /**
-     * @parameter ReachableTimeout reach timeout
-     * @return
-     */
-    public ArrayList<String> getConnectedIP(){
-        ArrayList<String> connectedIp=new ArrayList<String>();
-        try {
-            BufferedReader br=new BufferedReader(new FileReader("/proc/net/arp"));
-            String line;
-            while ((line=br.readLine())!=null){
-                String[] splitted=line.split(" +");
-                if (splitted !=null && splitted.length>=4){
-                    String mac=splitted[3];
-                    if(mac.matches("..:..:..:..:..:..")){
-                        boolean isReachable = InetAddress.getByName(splitted[0]).isReachable(-1);
-                        if(isReachable){
-                            connectedIp.add(splitted[0]+splitted[3]+splitted[5]);
-                        }
-                    }
-                }
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return connectedIp;
-    }
 }
