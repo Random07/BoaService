@@ -5,6 +5,7 @@ import android.provider.Settings;
 import android.net.wifi.WifiConfiguration;
 import static android.net.ConnectivityManager.TETHERING_WIFI;
 import android.net.wifi.WifiConfiguration.KeyMgmt;
+import android.net.wifi.WifiConfiguration.AuthAlgorithm;
 import android.os.Handler;
 
 public class WiFiSettings {
@@ -15,6 +16,9 @@ public class WiFiSettings {
     private OnStartTetheringCallback mStartTetheringCallback;
     static final String TAG = "WiFiSettings";
     public static final String WIFI_HOTSPOT_MAX_CLIENT_NUM = "wifi_hotspot_max_client_num";
+	public static final int OPEN_INDEX = 0;
+    public static final int WPA_INDEX = 1;
+    public static final int WPA2_INDEX = 2;
     private String mWifiName;
     private boolean mWifiHide;
     private String mSecurityType;
@@ -33,7 +37,7 @@ public class WiFiSettings {
     
     public String getWiFiInfo(){
         
-		WifiConfiguration mWifiConfig = mWifiManager.getWifiApConfiguration();
+		 WifiConfiguration mWifiConfig = mWifiManager.getWifiApConfiguration();
 		 mWifiName = mWifiConfig.getPrintableSsid();
          mWifiHide = mWifiConfig.hiddenSSID;
          mSecurityType = getSecurityType(mWifiConfig); 
@@ -43,8 +47,8 @@ public class WiFiSettings {
         return "Confirm|WIFIShow|"+mWifiName+"|"+mWifiHide+"|"+mSecurityType+"|"+mPassWord+"|"+mMaxClientNum;
     }
     
-    public void setWiFiInfo(String string){
-           resoverString(string);
+    public void setWiFiInfo(String str){
+           analysisString(str);
            ConfigWifiAp(mWifiName,mWifiHide,mSecurityType,mPassWord,mMaxClientNum);
         
     }
@@ -60,7 +64,7 @@ public class WiFiSettings {
                 return "open";
          }
         }
-     private void resoverString (String Str){
+     private void analysisString (String Str){
           String mArrayStr[] = mStr.split("\\|");
           mWifiName = mArrayStr[2];
           mWifiHide = true == mArrayStr[3].equals("true")? true : false ;
@@ -68,38 +72,41 @@ public class WiFiSettings {
           mPassWord = mArrayStr[5];
           mMaxClientNum = Integer.valueOf(mArrayStr[6]);
      }
-     public void ConfigWifiAp(String mSSID ,boolean mHiddenSSID ,String  mPasw,int mSecurityTypeIndex ) {       
+     public void ConfigWifiAp(String mSSID ,boolean mHidSSID ,String mSecurityType,String  mPasw,int mMaxCl ) {       
         if (mWifiManager.getWifiApState() == WifiManager.WIFI_AP_STATE_ENABLED) {
             android.util.Log.d(TAG,"Wifi AP config changed while enabled, stop and restart");
             mCm.stopTethering(TETHERING_WIFI);
         }
-            WifiConfiguration mWifiConfig = getWifiApConfig(mSSID,mPasw,mHiddenSSID,mSecurityTypeIndex);
+            WifiConfiguration mWifiConfig = getWifiApConfig(mSSID,mHidSSID,mSecurityType,mPasw,mMaxCl);
             mWifiManager.setWifiApConfiguration(mWifiConfig);
             startWifiAp();
     }
 
-    public WifiConfiguration getWifiApConfig(String mSSID ,String mPasw,int mHiddenSSID ,int mSecurityTypeIndex ) {
+    public WifiConfiguration getWifiApConfig(String mSSID ,boolean mHidSSID,String mSecurityType ,String mPasw,int mMaxCl) {
         WifiConfiguration config = new WifiConfiguration();
         config.SSID =mSSID;
-        config.hiddenSSID = mHiddenSSID;
-        switch (mSecurityTypeIndex) {
+        config.hiddenSSID = mHidSSID;
+		Settings.System.setInt(mContext.getContentResolver(),WIFI_HOTSPOT_MAX_CLIENT_NUM,mMaxCl);
+        switch (mSecurityType) {
             case OPEN_INDEX:
                 config.allowedKeyManagement.set(KeyMgmt.NONE);
                 return config;
             case WPA_INDEX:
                 config.allowedKeyManagement.set(KeyMgmt.WPA_PSK);
                 config.allowedAuthAlgorithms.set(AuthAlgorithm.OPEN);
-                config.preSharedKey = mPassword;
+                config.preSharedKey = mPasw;
                 return config;
             case WPA2_INDEX:
                 config.allowedKeyManagement.set(KeyMgmt.WPA2_PSK);
                 config.allowedAuthAlgorithms.set(AuthAlgorithm.OPEN);
-                config.preSharedKey = mPassword;
+                config.preSharedKey = mPasw;
                 return config;
         }
         return null;
     }
-          /**
+
+	
+    /**
      *    open wifiAp
      * @param mSSID
      * @param mPasswd

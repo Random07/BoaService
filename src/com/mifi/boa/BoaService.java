@@ -22,19 +22,13 @@ import android.net.ConnectivityManager;
 import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.provider.Settings;
-import android.net.wifi.WifiConfiguration.KeyMgmt;
-import android.net.wifi.WifiConfiguration.AuthAlgorithm;
 import android.os.Build;
 import android.text.TextUtils;
 import android.os.Handler;
 import android.os.IBinder;
-import java.net.InetAddress;
 
 public class BoaService extends Service {
     static final String TAG = "BoaService";
-    public static final int OPEN_INDEX = 0;
-    public static final int WPA_INDEX = 1;
-    public static final int WPA2_INDEX = 2;
     private ArrayList<Hotspot> result = null;
     private String hotspotString="";
     private ConnectivityManager mCm;
