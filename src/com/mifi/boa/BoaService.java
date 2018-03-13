@@ -26,7 +26,6 @@ import android.net.wifi.WifiConfiguration.KeyMgmt;
 import android.net.wifi.WifiConfiguration.AuthAlgorithm;
 import android.os.Build;
 import android.text.TextUtils;
-import static android.net.ConnectivityManager.TETHERING_WIFI;
 import android.os.Handler;
 import android.os.IBinder;
 import java.net.InetAddress;
@@ -38,8 +37,6 @@ public class BoaService extends Service {
     public static final int WPA2_INDEX = 2;
     private ArrayList<Hotspot> result = null;
     private String hotspotString="";
-    private Handler mHandler = new Handler();
-    private OnStartTetheringCallback mStartTetheringCallback;
     private ConnectivityManager mCm;
     private WifiManager mWifiManager;
     private WifiConfiguration mWifiConfig = null;
@@ -62,7 +59,7 @@ public class BoaService extends Service {
         // TODO Auto-generated method stub
         android.util.Log.d(TAG,"Service start");
 		initInstance();
-        startWifiAp();
+        mWiFiSettings.startWifiAp();
         new ServerListener().start();		
         return START_STICKY;
     }
@@ -73,7 +70,7 @@ public class BoaService extends Service {
         mConnectCustomer = ConnectCustomer.getInstance();
         mDeviceInfo = DeviceInfo.getInstance(mContext);
         mUserData = UserData.getInstance(mContext);
-        mApnSettings = ApnSettings.getInstance();
+        mApnSettings = ApnSettings.getInstance(mContext);
         mWiFiSettings = WiFiSettings.getInstance(mContext);
 	  }
 
@@ -162,13 +159,13 @@ public class BoaService extends Service {
                              mUserData.setNetworkType(string); 
                         break;
                         case "ApnShow":
-                            mFlushString = mApnSettings.getApns(); 
+                            mFlushString = mApnSettings.getApns();
                         break;
                         case "ApnChange":
-                            mFlushString = mApnSettings.setSelectedApn(string); 
+                            mApnSettings.setSelectedApn(string);
                         break;
                         case "ApnAdd":
-                            mFlushString = mApnSettings.addApn(string); 
+                            mApnSettings.addApn(string);
                         break;
                         case "WIFIShow":
                             mFlushString = mWiFiSettings.getWiFiInfo(); 
@@ -197,20 +194,6 @@ public class BoaService extends Service {
         }
     }
 
-      /**
-     *    open wifiAp
-     * @param mSSID
-     * @param mPasswd
-     * @param securty
-     */
-    public void startWifiAp(){
-        android.util.Log.d(TAG,"startWifiAp begin");
-        mWifiManager = (WifiManager) getApplication().getSystemService(Context.WIFI_SERVICE);
-        mCm = (ConnectivityManager) getApplication().getSystemService(Context.CONNECTIVITY_SERVICE);
-        android.util.Log.d(TAG,"startWifiAp begin ConnectivityManager");
-        mStartTetheringCallback = new OnStartTetheringCallback();
-        mCm.startTethering(TETHERING_WIFI, true, mStartTetheringCallback, mHandler);
-    }
 
     private String getAction(String mStr){
         String mArrayStr[] = mStr.split("\\|");
@@ -218,52 +201,6 @@ public class BoaService extends Service {
             return mArrayStr[1];
         }
         return "";
-    }
-	
-
-    public void ConfigWifiAp(String mSSID ,String mPassword,int mBandIndex ,int mSecurityTypeIndex ) {       
-        if (mWifiManager.getWifiApState() == WifiManager.WIFI_AP_STATE_ENABLED) {
-            android.util.Log.d(TAG,"Wifi AP config changed while enabled, stop and restart");
-            mCm.stopTethering(TETHERING_WIFI);
-        }
-        mWifiConfig = getWifiApConfig(mSSID,mPassword,mBandIndex,mSecurityTypeIndex);
-        mWifiManager.setWifiApConfiguration(mWifiConfig);
-        startWifiAp();
-    }
-
-    public WifiConfiguration getWifiApConfig(String mSSID ,String mPassword,int mBandIndex ,int mSecurityTypeIndex ) {
-        WifiConfiguration config = new WifiConfiguration();
-        config.SSID =mSSID;
-        config.apBand = mBandIndex;
-        switch (mSecurityTypeIndex) {
-            case OPEN_INDEX:
-                config.allowedKeyManagement.set(KeyMgmt.NONE);
-                return config;
-            case WPA_INDEX:
-                config.allowedKeyManagement.set(KeyMgmt.WPA_PSK);
-                config.allowedAuthAlgorithms.set(AuthAlgorithm.OPEN);
-                config.preSharedKey = mPassword;
-                return config;
-            case WPA2_INDEX:
-                config.allowedKeyManagement.set(KeyMgmt.WPA2_PSK);
-                config.allowedAuthAlgorithms.set(AuthAlgorithm.OPEN);
-                config.preSharedKey = mPassword;
-                return config;
-        }
-        return null;
-    }
-
-    private static final class OnStartTetheringCallback extends
-        ConnectivityManager.OnStartTetheringCallback {
-        @Override
-        public void onTetheringStarted() {
-            android.util.Log.d(TAG,"onTetheringStarted");
-        }
-
-        @Override
-        public void onTetheringFailed() {
-            android.util.Log.d(TAG,"onTetheringFailed");
-        }
     }
 
 }

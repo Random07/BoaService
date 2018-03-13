@@ -8,17 +8,18 @@ public class DeviceInfo {
 
     public static DeviceInfo getInstance(Context mCont){
         if (null == sInstance) {
-            sInstance = new DeviceInfo(mContext);
+            sInstance = new DeviceInfo(mCont);
         }
         return sInstance;
     }
 	
-    private DeviceInfo(Context     mCont){
-             mContext = mCont;
+    private DeviceInfo(Context mCont){
+        mContext = mCont;
 	}
+
     public String getDeviceInfo(){
-        TelephonyManager telephonyManager = (TelephonyManager) mContext.getSystemService(TELEPHONY_SERVICE);
-		WifiManager mWifiManager = (WifiManager) getApplication().getSystemService(Context.WIFI_SERVICE);
+        TelephonyManager telephonyManager = TelephonyManager.from(mContext);
+		WifiManager mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
         String mSimNumber = telephonyManager.getLine1Number();
 		String mDeviceIMEI = telephonyManager.getDeviceId(); 
 		String imsi = telephonyManager.getSubscriberId();

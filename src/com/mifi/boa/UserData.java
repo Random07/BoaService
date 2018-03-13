@@ -1,5 +1,4 @@
 package com.mifi.boa;
-import com.android.internal.telephony.Phone;
 import android.content.Context;
 
 public class UserData {
@@ -7,19 +6,17 @@ public class UserData {
 	private Context mContext;
     
     public static UserData getInstance(Context mCont){
-		mContext =mContext;
         if (null == sInstance) {
             sInstance = new UserData(mCont);
         }
         return sInstance;
     }
+
 	public UserData (Context mCont) {
-             mContext = mCont;
+        mContext = mCont;
 	}
 
-	
-
-    public String setDataLimit(){
+    public String setDataLimit(String mData){
         return "";
     }
 
