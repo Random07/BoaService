@@ -102,6 +102,7 @@ public class ApnSettings {
             mRet += "|";
             mRet += mApn.toString();
         }
+        mApnList.clear();
         Log.d(TAG, "getApns = " + mRet);
 
         return mRet;
@@ -127,19 +128,36 @@ public class ApnSettings {
         
     public void addApn(String name, String apn, String mcc, String mnc,
                             String userName, String password, String authType){
-        //Uri mUri = mContext.getContentResolver().insert(Telephony.Carriers.CONTENT_URI, new ContentValues());
+        Uri mUri = mContext.getContentResolver().insert(Telephony.Carriers.CONTENT_URI, new ContentValues());
         ContentValues values = new ContentValues();
 
-        //Log.d(TAG, "mUri = " + mUri);
-        values.put(Telephony.Carriers.NAME, checkNotSet(name));
-        values.put(Telephony.Carriers.APN, checkNotSet(apn));
-        values.put(Telephony.Carriers.USER, checkNotSet(userName));
-        values.put(Telephony.Carriers.PASSWORD, checkNotSet(password));
-        values.put(Telephony.Carriers.MCC, checkNotSet(mcc));
-        values.put(Telephony.Carriers.MNC, checkNotSet(mnc));
-        values.put(Telephony.Carriers.AUTH_TYPE, Integer.parseInt(authType));
-        mContext.getContentResolver().insert(Telephony.Carriers.CONTENT_URI, values);
-        //mContext.getContentResolver().update(mUri, values, null, null);
+        Log.d(TAG, "mUri = " + mUri + "; name = " + name + "; apn = " + apn + "; mcc = " + mcc + "; mnc = " + mnc 
+                + "; userName = " + userName + "; password = " + password + "; authType = " + authType);
+        values.put(Telephony.Carriers.NAME, checkNotSet(name)); // Can not be null
+        values.put(Telephony.Carriers.APN, checkNotSet(apn)); // Can not be null
+        values.put(Telephony.Carriers.USER, checkNotSet(userName)); // default value is null
+        values.put(Telephony.Carriers.PASSWORD, checkNotSet(password)); // default value is null
+        values.put(Telephony.Carriers.MCC, checkNotSet(mcc)); // Can not be null
+        values.put(Telephony.Carriers.MNC, checkNotSet(mnc)); // Can not be null
+        values.put(Telephony.Carriers.AUTH_TYPE, Integer.parseInt(authType)); // Can not be -1
+        values.put(Telephony.Carriers.PROTOCOL, "IP"); // default value is IP
+        values.put(Telephony.Carriers.ROAMING_PROTOCOL, "IP"); // default value is IP
+        values.put(Telephony.Carriers.PROXY, ""); // default value is null
+        values.put(Telephony.Carriers.PORT, ""); //  default value is null
+        values.put(Telephony.Carriers.MMSPROXY, ""); // default value is null
+        values.put(Telephony.Carriers.MMSPORT, ""); // default value is null
+        values.put(Telephony.Carriers.SERVER, ""); // default value is null
+        values.put(Telephony.Carriers.MMSC, ""); // default value is null
+        values.put(Telephony.Carriers.TYPE, "default"); // default value is default,mms,supl,dun,hipri,fota,cbs,dm,wap,net,cmmail,tethering,rcse,xcap,rcs,bip,vsim
+        values.put(Telephony.Carriers.NUMERIC, mcc+mnc);
+        values.put(Telephony.Carriers.CURRENT, 1); // default value is 1
+        values.put(Telephony.Carriers.BEARER_BITMASK, 0); // default value is 0
+        values.put(Telephony.Carriers.BEARER, 0); // default value is 0
+        values.put(Telephony.Carriers.MVNO_TYPE, ""); // default value is null
+        values.put(Telephony.Carriers.MVNO_MATCH_DATA, ""); // default value is null
+        values.put(Telephony.Carriers.CARRIER_ENABLED, 1); // default value is 1
+
+        mContext.getContentResolver().update(mUri, values, null, null);
     }
 
     public String getSelectedApnName() {

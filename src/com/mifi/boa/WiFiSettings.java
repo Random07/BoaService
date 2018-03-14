@@ -1,17 +1,20 @@
 package com.mifi.boa;
 import android.net.wifi.WifiManager;
 import android.content.Context;
-import android.provider.Settings;
+import android.provider.Settings.System;
 import android.net.wifi.WifiConfiguration;
+import android.net.ConnectivityManager;
 import static android.net.ConnectivityManager.TETHERING_WIFI;
 import android.net.wifi.WifiConfiguration.KeyMgmt;
 import android.net.wifi.WifiConfiguration.AuthAlgorithm;
 import android.os.Handler;
+import android.provider.Settings.System;
 
 public class WiFiSettings {
     private static WiFiSettings sInstance;
     private Context mContext;
     private WifiManager mWifiManager;
+    private ConnectivityManager mCm;
     private Handler mHandler = new Handler();
     private OnStartTetheringCallback mStartTetheringCallback;
     static final String TAG = "WiFiSettings";
@@ -33,6 +36,7 @@ public class WiFiSettings {
 		public WiFiSettings (Context mCont) {
              mContext = mCont;
              mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+             mCm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
 	}
     
     public String getWiFiInfo(){
@@ -42,7 +46,7 @@ public class WiFiSettings {
          mWifiHide = mWifiConfig.hiddenSSID;
          mSecurityType = getSecurityType(mWifiConfig); 
          mPassWord = mWifiConfig.preSharedKey;
-         mMaxClientNum = Settings.System.getInt(mContext.getContentResolver(),WIFI_HOTSPOT_MAX_CLIENT_NUM,5);
+         mMaxClientNum = System.getInt(mContext.getContentResolver(),WIFI_HOTSPOT_MAX_CLIENT_NUM,5);
         
         return "Confirm|WIFIShow|"+mWifiName+"|"+mWifiHide+"|"+mSecurityType+"|"+mPassWord+"|"+mMaxClientNum;
     }
@@ -64,7 +68,7 @@ public class WiFiSettings {
                 return "open";
          }
         }
-     private void analysisString (String Str){
+     private void analysisString (String mStr){
           String mArrayStr[] = mStr.split("\\|");
           mWifiName = mArrayStr[2];
           mWifiHide = true == mArrayStr[3].equals("true")? true : false ;
@@ -86,8 +90,9 @@ public class WiFiSettings {
         WifiConfiguration config = new WifiConfiguration();
         config.SSID =mSSID;
         config.hiddenSSID = mHidSSID;
-		Settings.System.setInt(mContext.getContentResolver(),WIFI_HOTSPOT_MAX_CLIENT_NUM,mMaxCl);
-        switch (mSecurityType) {
+		System.putInt(mContext.getContentResolver(),WIFI_HOTSPOT_MAX_CLIENT_NUM,mMaxCl);
+        int mSecurityTypeint = ConversSecuritype(mSecurityType);
+        switch (mSecurityTypeint) {
             case OPEN_INDEX:
                 config.allowedKeyManagement.set(KeyMgmt.NONE);
                 return config;
@@ -105,6 +110,19 @@ public class WiFiSettings {
         return null;
     }
 
+    public int ConversSecuritype(String mSecurityType){
+           switch (mSecurityType ) {
+            case "wpa-psk":
+                return WPA_INDEX;
+            case "wpa2-psk":
+                return WPA2_INDEX;
+           case "open":
+                return OPEN_INDEX;
+         }
+           return OPEN_INDEX;
+
+    }
+
 	
     /**
      *    open wifiAp
@@ -114,8 +132,6 @@ public class WiFiSettings {
      */
     public void startWifiAp(){
         android.util.Log.d(TAG,"startWifiAp begin");
-        mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-        mCm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         android.util.Log.d(TAG,"startWifiAp begin ConnectivityManager");
         mStartTetheringCallback = new OnStartTetheringCallback();
         mCm.startTethering(TETHERING_WIFI, true, mStartTetheringCallback, mHandler);

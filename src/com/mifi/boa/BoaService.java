@@ -26,6 +26,8 @@ import android.os.Build;
 import android.text.TextUtils;
 import android.os.Handler;
 import android.os.IBinder;
+import android.content.IntentFilter;
+
 
 public class BoaService extends Service {
     static final String TAG = "BoaService";
@@ -41,6 +43,7 @@ public class BoaService extends Service {
 	private UserData mUserData;
 	private ApnSettings mApnSettings;
 	private WiFiSettings mWiFiSettings;
+    private BoaReceiver mBoaReceiver;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -53,13 +56,25 @@ public class BoaService extends Service {
         // TODO Auto-generated method stub
         android.util.Log.d(TAG,"Service start");
 		initInstance();
+        mContext.registerReceiver(mBoaReceiver,new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         mWiFiSettings.startWifiAp();
+        mWiFiSettings.ConfigWifiAp("Lichuan",false,"wpa2-psk","12345678",6);
+        android.util.Log.d(TAG,mWiFiSettings.getWiFiInfo());
+        android.util.Log.d(TAG,mDeviceInfo.getDeviceInfo());
         new ServerListener().start();		
         return START_STICKY;
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mContext.unregisterReceiver(mBoaReceiver);
+    }
+    
+
 	private void initInstance() {
         mContext = getApplication();
+        mBoaReceiver = new BoaReceiver();
 	    mAccount = Account.getInstance(mContext);
         mConnectCustomer = ConnectCustomer.getInstance();
         mDeviceInfo = DeviceInfo.getInstance(mContext);
@@ -165,13 +180,13 @@ public class BoaService extends Service {
                             mFlushString = mWiFiSettings.getWiFiInfo(); 
                         break;
                         case "WIFISetting":
-                            mFlushString = mWiFiSettings.setWiFiInfo(string); 
+                            mWiFiSettings.setWiFiInfo(string); 
                         break;
                         case "ReBoot":
-                            mFlushString = mDeviceInfo.setReBoot(); 
+                            mDeviceInfo.setReBoot(); 
                         break;
                         case "ReFactory":
-                            mFlushString = mDeviceInfo.setReFactory(); 
+                            mDeviceInfo.setReFactory(); 
                         break;
                         default:
                             android.util.Log.d(TAG,mAction+" not support!");
