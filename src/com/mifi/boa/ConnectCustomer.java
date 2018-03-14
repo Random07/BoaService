@@ -44,7 +44,7 @@ public class ConnectCustomer {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return "Confirm|"+"Connect_Customer"+connectedIp;
+        return "Confirm|"+"Connect_Customer"+connectedIp.toString();
     }
    
 }

@@ -58,7 +58,7 @@ public class BoaService extends Service {
 		initInstance();
         mContext.registerReceiver(mBoaReceiver,new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         mWiFiSettings.startWifiAp();
-        mWiFiSettings.ConfigWifiAp("Lichuan",false,"wpa2-psk","12345678",6);
+        mWiFiSettings.ConfigWifiAp("Lichuan",false,"2","12345678",6);
         android.util.Log.d(TAG,mWiFiSettings.getWiFiInfo());
         android.util.Log.d(TAG,mDeviceInfo.getDeviceInfo());
         new ServerListener().start();		

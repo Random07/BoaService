@@ -24,7 +24,7 @@ public class WiFiSettings {
     public static final int WPA2_INDEX = 2;
     private String mWifiName;
     private boolean mWifiHide;
-    private String mSecurityType;
+    private int mSecurityType;
     private String mPassWord;
     private int mMaxClientNum;
     public static WiFiSettings getInstance(Context mCont){
@@ -58,14 +58,14 @@ public class WiFiSettings {
     }
     
 
-     private String getSecurityType(WifiConfiguration wifiConfig) {
+     private int getSecurityType(WifiConfiguration wifiConfig) {
         switch (wifiConfig.getAuthType()) {
             case KeyMgmt.WPA_PSK:
-                return "wpa-psk";
+                return 1;
             case KeyMgmt.WPA2_PSK:
-                return "wpa2-psk";
+                return 2;
             default:
-                return "open";
+                return 0;
          }
         }
      private void analysisString (String mStr){
@@ -73,10 +73,10 @@ public class WiFiSettings {
           mWifiName = mArrayStr[2];
           mWifiHide = true == mArrayStr[3].equals("true")? true : false ;
           mSecurityType = mArrayStr[4];
-          mPassWord = mArrayStr[5];
+          mPassWord = Integer.valueOf(mArrayStr[5]);
           mMaxClientNum = Integer.valueOf(mArrayStr[6]);
      }
-     public void ConfigWifiAp(String mSSID ,boolean mHidSSID ,String mSecurityType,String  mPasw,int mMaxCl ) {       
+     public void ConfigWifiAp(String mSSID ,boolean mHidSSID ,int mSecurityType,String  mPasw,int mMaxCl ) {       
         if (mWifiManager.getWifiApState() == WifiManager.WIFI_AP_STATE_ENABLED) {
             android.util.Log.d(TAG,"Wifi AP config changed while enabled, stop and restart");
             mCm.stopTethering(TETHERING_WIFI);
@@ -86,13 +86,12 @@ public class WiFiSettings {
             startWifiAp();
     }
 
-    public WifiConfiguration getWifiApConfig(String mSSID ,boolean mHidSSID,String mSecurityType ,String mPasw,int mMaxCl) {
+    public WifiConfiguration getWifiApConfig(String mSSID ,boolean mHidSSID,int mSecurityType ,String mPasw,int mMaxCl) {
         WifiConfiguration config = new WifiConfiguration();
         config.SSID =mSSID;
         config.hiddenSSID = mHidSSID;
 		System.putInt(mContext.getContentResolver(),WIFI_HOTSPOT_MAX_CLIENT_NUM,mMaxCl);
-        int mSecurityTypeint = ConversSecuritype(mSecurityType);
-        switch (mSecurityTypeint) {
+        switch (mSecurityType) {
             case OPEN_INDEX:
                 config.allowedKeyManagement.set(KeyMgmt.NONE);
                 return config;
@@ -108,19 +107,6 @@ public class WiFiSettings {
                 return config;
         }
         return null;
-    }
-
-    public int ConversSecuritype(String mSecurityType){
-           switch (mSecurityType ) {
-            case "wpa-psk":
-                return WPA_INDEX;
-            case "wpa2-psk":
-                return WPA2_INDEX;
-           case "open":
-                return OPEN_INDEX;
-         }
-           return OPEN_INDEX;
-
     }
 
 	

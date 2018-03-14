@@ -49,9 +49,9 @@ public class DeviceInfo {
 		String mFirmwareVersion = "Not Know";
 		String mHwVersion ="Not Know";
 		
-		
-        return ""+mWanIpAddress+"|"+mMacAddress+"|"+mIpAddress+"|"+mMaxConnect;
-    }
+        return "Confirm|"+"DeviceInfo|"+mSimNumber+"|"+mDeviceIMEI+"|"+imsi+"|"+mSSID+"|"+mMaxConnect+"|"+mWanIpAddress+"|"+mSwVersion+"|"+mFirmwareVersion+"|"+mHwVersion;
+
+	}
 
       private String getIpAddresses() {
         LinkProperties prop = mCM.getActiveLinkProperties();;
