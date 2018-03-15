@@ -1,4 +1,5 @@
 package com.mifi.boa;
+
 import android.net.wifi.WifiManager;
 import android.content.Context;
 import android.provider.Settings.System;
@@ -27,38 +28,37 @@ public class WiFiSettings {
     private int mSecurityType;
     private String mPassWord;
     private int mMaxClientNum;
+
     public static WiFiSettings getInstance(Context mCont){
         if (null == sInstance) {
             sInstance = new WiFiSettings(mCont);
         }
         return sInstance;
     }
-		public WiFiSettings (Context mCont) {
-             mContext = mCont;
-             mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-             mCm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+	public WiFiSettings (Context mCont) {
+         mContext = mCont;
+         mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+         mCm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
 	}
     
     public String getWiFiInfo(){
-        
-		 WifiConfiguration mWifiConfig = mWifiManager.getWifiApConfiguration();
-		 mWifiName = mWifiConfig.getPrintableSsid();
-         mWifiHide = mWifiConfig.hiddenSSID;
-         mSecurityType = getSecurityType(mWifiConfig); 
-         mPassWord = mWifiConfig.preSharedKey;
-         mMaxClientNum = System.getInt(mContext.getContentResolver(),WIFI_HOTSPOT_MAX_CLIENT_NUM,5);
+        WifiConfiguration mWifiConfig = mWifiManager.getWifiApConfiguration();
+        mWifiName = mWifiConfig.getPrintableSsid();
+        mWifiHide = mWifiConfig.hiddenSSID;
+        mSecurityType = getSecurityType(mWifiConfig);
+        mPassWord = mWifiConfig.preSharedKey;
+        mMaxClientNum = System.getInt(mContext.getContentResolver(),WIFI_HOTSPOT_MAX_CLIENT_NUM,5);
         
         return "Confirm|WIFIShow|"+mWifiName+"|"+mWifiHide+"|"+mSecurityType+"|"+mPassWord+"|"+mMaxClientNum;
     }
     
     public void setWiFiInfo(String str){
-           analysisString(str);
-           ConfigWifiAp(mWifiName,mWifiHide,mSecurityType,mPassWord,mMaxClientNum);
-        
+       analysisString(str);
+       ConfigWifiAp(mWifiName,mWifiHide,mSecurityType,mPassWord,mMaxClientNum);
     }
-    
 
-     private int getSecurityType(WifiConfiguration wifiConfig) {
+    private int getSecurityType(WifiConfiguration wifiConfig) {
         switch (wifiConfig.getAuthType()) {
             case KeyMgmt.WPA_PSK:
                 return 1;
@@ -66,31 +66,35 @@ public class WiFiSettings {
                 return 2;
             default:
                 return 0;
-         }
         }
-     private void analysisString (String mStr){
-          String mArrayStr[] = mStr.split("\\|");
-          mWifiName = mArrayStr[2];
-          mWifiHide = true == mArrayStr[3].equals("true")? true : false ;
-          mSecurityType = mArrayStr[4];
-          mPassWord = Integer.valueOf(mArrayStr[5]);
-          mMaxClientNum = Integer.valueOf(mArrayStr[6]);
-     }
-     public void ConfigWifiAp(String mSSID ,boolean mHidSSID ,int mSecurityType,String  mPasw,int mMaxCl ) {       
+    }
+
+    private void analysisString (String mStr){
+        String mArrayStr[] = mStr.split("\\|");
+        mWifiName = mArrayStr[2];
+        mWifiHide = mArrayStr[3].equals("true")? true : false ;
+        mSecurityType = Integer.valueOf(mArrayStr[4]);
+        mPassWord = mArrayStr[5];
+        mMaxClientNum = Integer.valueOf(mArrayStr[6]);
+    }
+
+    public void ConfigWifiAp(String mSSID ,boolean mHidSSID ,int mSecurityType,String  mPasw,int mMaxCl ) {
         if (mWifiManager.getWifiApState() == WifiManager.WIFI_AP_STATE_ENABLED) {
             android.util.Log.d(TAG,"Wifi AP config changed while enabled, stop and restart");
             mCm.stopTethering(TETHERING_WIFI);
         }
-            WifiConfiguration mWifiConfig = getWifiApConfig(mSSID,mHidSSID,mSecurityType,mPasw,mMaxCl);
-            mWifiManager.setWifiApConfiguration(mWifiConfig);
-            startWifiAp();
+        WifiConfiguration mWifiConfig = getWifiApConfig(mSSID,mHidSSID,mSecurityType,mPasw,mMaxCl);
+        mWifiManager.setWifiApConfiguration(mWifiConfig);
+        startWifiAp();
     }
 
     public WifiConfiguration getWifiApConfig(String mSSID ,boolean mHidSSID,int mSecurityType ,String mPasw,int mMaxCl) {
         WifiConfiguration config = new WifiConfiguration();
+
         config.SSID =mSSID;
         config.hiddenSSID = mHidSSID;
 		System.putInt(mContext.getContentResolver(),WIFI_HOTSPOT_MAX_CLIENT_NUM,mMaxCl);
+
         switch (mSecurityType) {
             case OPEN_INDEX:
                 config.allowedKeyManagement.set(KeyMgmt.NONE);
@@ -106,6 +110,7 @@ public class WiFiSettings {
                 config.preSharedKey = mPasw;
                 return config;
         }
+
         return null;
     }
 
@@ -122,6 +127,7 @@ public class WiFiSettings {
         mStartTetheringCallback = new OnStartTetheringCallback();
         mCm.startTethering(TETHERING_WIFI, true, mStartTetheringCallback, mHandler);
     }
+
     private static final class OnStartTetheringCallback extends
         ConnectivityManager.OnStartTetheringCallback {
         @Override

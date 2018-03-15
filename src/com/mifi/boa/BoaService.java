@@ -28,7 +28,6 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.content.IntentFilter;
 
-
 public class BoaService extends Service {
     static final String TAG = "BoaService";
     private ArrayList<Hotspot> result = null;
@@ -37,12 +36,12 @@ public class BoaService extends Service {
     private WifiManager mWifiManager;
     private WifiConfiguration mWifiConfig = null;
     private Context mContext;
-	private Account mAccount;
-	private ConnectCustomer mConnectCustomer;
-	private DeviceInfo mDeviceInfo;
-	private UserData mUserData;
-	private ApnSettings mApnSettings;
-	private WiFiSettings mWiFiSettings;
+    private Account mAccount;
+    private ConnectCustomer mConnectCustomer;
+    private DeviceInfo mDeviceInfo;
+    private UserData mUserData;
+    private ApnSettings mApnSettings;
+    private WiFiSettings mWiFiSettings;
     private BoaReceiver mBoaReceiver;
 
     @Override
@@ -58,7 +57,7 @@ public class BoaService extends Service {
 		initInstance();
         mContext.registerReceiver(mBoaReceiver,new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
         mWiFiSettings.startWifiAp();
-        mWiFiSettings.ConfigWifiAp("Lichuan",false,"2","12345678",6);
+        mWiFiSettings.ConfigWifiAp("Lichuan",false,2,"12345678",6);
         android.util.Log.d(TAG,mWiFiSettings.getWiFiInfo());
         android.util.Log.d(TAG,mDeviceInfo.getDeviceInfo());
         new ServerListener().start();		
@@ -70,18 +69,17 @@ public class BoaService extends Service {
         super.onDestroy();
         mContext.unregisterReceiver(mBoaReceiver);
     }
-    
 
-	private void initInstance() {
+    private void initInstance() {
         mContext = getApplication();
         mBoaReceiver = new BoaReceiver();
-	    mAccount = Account.getInstance(mContext);
+        mAccount = Account.getInstance(mContext);
         mConnectCustomer = ConnectCustomer.getInstance();
         mDeviceInfo = DeviceInfo.getInstance(mContext);
         mUserData = UserData.getInstance(mContext);
         mApnSettings = ApnSettings.getInstance(mContext);
         mWiFiSettings = WiFiSettings.getInstance(mContext);
-	  }
+    }
 
     /**
       *   Socket connet with gci 
@@ -152,6 +150,9 @@ public class BoaService extends Service {
                         case "Login":
                             mFlushString = mAccount.getPasswordAndAccount();
                         break;
+                        case "SetAccountInfo":
+                            mAccount.setPasswordAndAccount(string);
+                            break;
                         case "Connect_Customer":
                             mFlushString = mConnectCustomer.getConnectCustomer();
                         break;
@@ -203,7 +204,6 @@ public class BoaService extends Service {
         }
     }
 
-
     private String getAction(String mStr){
         String mArrayStr[] = mStr.split("\\|");
         if(mArrayStr.length > 1){
@@ -211,5 +211,4 @@ public class BoaService extends Service {
         }
         return "";
     }
-
 }

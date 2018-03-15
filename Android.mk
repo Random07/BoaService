@@ -1,6 +1,5 @@
 LOCAL_PATH:= $(call my-dir)
 
-
 include $(CLEAR_VARS)
 
 LOCAL_RESOURCE_DIR := $(LOCAL_PATH)/res
@@ -12,5 +11,3 @@ LOCAL_PRIVILEGED_MODULE := true
 #LOCAL_PROGUARD_FLAG_FILES := proguard.flags
 
 include $(BUILD_PACKAGE)
-
-

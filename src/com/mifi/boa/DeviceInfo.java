@@ -1,4 +1,5 @@
 package com.mifi.boa;
+
 import android.telephony.TelephonyManager;
 import android.net.wifi.WifiManager;
 import android.content.Context;
@@ -32,26 +33,25 @@ public class DeviceInfo {
         mContext = mCont;
         mCM = (ConnectivityManager)mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         telephonyManager = TelephonyManager.from(mContext);
-		mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-	}
+        mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+    }
 
     public String getDeviceInfo(){
         String mSimNumber = telephonyManager.getLine1Number();
-		String mDeviceIMEI = telephonyManager.getDeviceId(); 
-		String imsi = telephonyManager.getSubscriberId();
-		String mSSID = mWifiManager.getWifiApConfiguration().getPrintableSsid();
-		//String mSSID = mWifiManager.getWifiApConfiguration().SSID;
-		int mMaxConnect = System.getInt(mContext.getContentResolver(),WIFI_HOTSPOT_MAX_CLIENT_NUM,5);
-		String mIpAddress = getIpAddresses();
-		String mMacAddress = getMacAddress();
-		String mWanIpAddress = SystemProperties.get("net.wimax.mac.address", "Unavailable");;
-		String mSwVersion = "Android 7.0";
-		String mFirmwareVersion = "Not Know";
-		String mHwVersion ="Not Know";
+        String mDeviceIMEI = telephonyManager.getDeviceId();
+        String imsi = telephonyManager.getSubscriberId();
+        String mSSID = mWifiManager.getWifiApConfiguration().getPrintableSsid();
+        //String mSSID = mWifiManager.getWifiApConfiguration().SSID;
+        int mMaxConnect = System.getInt(mContext.getContentResolver(),WIFI_HOTSPOT_MAX_CLIENT_NUM,5);
+        String mIpAddress = getIpAddresses();
+        String mMacAddress = getMacAddress();
+        String mWanIpAddress = SystemProperties.get("net.wimax.mac.address", "Unavailable");;
+        String mSwVersion = "Android 7.0";
+        String mFirmwareVersion = "Not Know";
+        String mHwVersion ="Not Know";
 		
         return "Confirm|"+"DeviceInfo|"+mSimNumber+"|"+mDeviceIMEI+"|"+imsi+"|"+mSSID+"|"+mMaxConnect+"|"+mWanIpAddress+"|"+mSwVersion+"|"+mFirmwareVersion+"|"+mHwVersion;
-
-	}
+    }
 
       private String getIpAddresses() {
         LinkProperties prop = mCM.getActiveLinkProperties();;

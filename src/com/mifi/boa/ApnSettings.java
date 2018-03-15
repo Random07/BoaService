@@ -11,6 +11,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.util.Log;
 import android.telephony.TelephonyManager;
+import android.text.TextUtils;
 
 public class ApnSettings {
     final String TAG = "BoaService_apn";
@@ -108,22 +109,21 @@ public class ApnSettings {
         return mRet;
     }
     
-    public void setSelectedApn(String key){
+    public void setSelectedApn(String data){
         ContentResolver resolver = mContext.getContentResolver();
-
         ContentValues values = new ContentValues();
-        values.put(APN_ID, key);
+        String[] mData = data.split("\\|");
 
-        /// M: add sub id for prefer APN
-        // resolver.update(PREFERAPN_URI, values, null, null);
+        Log.d(TAG, "APN_ID = " + mData[2]);
+        values.put(APN_ID, mData[2]);
         resolver.update(getPreferApnUri(mSubscriptionInfo.getSubscriptionId()), values,
         null, null);
     }
     
     public void addApn(String data){
-        String[] mApnContent = data.split("\\|");
-        addApn(mApnContent[0], mApnContent[1], mApnContent[2], mApnContent[3]
-                , mApnContent[4], mApnContent[5], mApnContent[6]);
+        String[] mData = data.split("\\|");
+        addApn(mData[2], mData[3], mData[4], mData[5]
+                , mData[6], mData[7], mData[8]);
     }
         
     public void addApn(String name, String apn, String mcc, String mnc,
@@ -139,7 +139,9 @@ public class ApnSettings {
         values.put(Telephony.Carriers.PASSWORD, checkNotSet(password)); // default value is null
         values.put(Telephony.Carriers.MCC, checkNotSet(mcc)); // Can not be null
         values.put(Telephony.Carriers.MNC, checkNotSet(mnc)); // Can not be null
-        values.put(Telephony.Carriers.AUTH_TYPE, Integer.parseInt(authType)); // Can not be -1
+        if(!TextUtils.isEmpty(authType)){
+            values.put(Telephony.Carriers.AUTH_TYPE, Integer.parseInt(authType)); // Can not be -1
+        }
         values.put(Telephony.Carriers.PROTOCOL, "IP"); // default value is IP
         values.put(Telephony.Carriers.ROAMING_PROTOCOL, "IP"); // default value is IP
         values.put(Telephony.Carriers.PROXY, ""); // default value is null
@@ -148,7 +150,8 @@ public class ApnSettings {
         values.put(Telephony.Carriers.MMSPORT, ""); // default value is null
         values.put(Telephony.Carriers.SERVER, ""); // default value is null
         values.put(Telephony.Carriers.MMSC, ""); // default value is null
-        values.put(Telephony.Carriers.TYPE, "default"); // default value is default,mms,supl,dun,hipri,fota,cbs,dm,wap,net,cmmail,tethering,rcse,xcap,rcs,bip,vsim
+        values.put(Telephony.Carriers.TYPE, "default,mms,supl,dun,hipri,fota,cbs,dm,wap,net,cmmail,tethering,rcse,xcap,rcs,bip,vsim");
+        // default value is default,mms,supl,dun,hipri,fota,cbs,dm,wap,net,cmmail,tethering,rcse,xcap,rcs,bip,vsim
         values.put(Telephony.Carriers.NUMERIC, mcc+mnc);
         values.put(Telephony.Carriers.CURRENT, 1); // default value is 1
         values.put(Telephony.Carriers.BEARER_BITMASK, 0); // default value is 0

@@ -1,4 +1,5 @@
 package com.mifi.boa;
+
 import java.util.ArrayList;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -16,12 +17,10 @@ public class ConnectCustomer {
         return sInstance;
     }
 
-	
 	/**
      * @parameter ReachableTimeout reach timeout
      * @return
      */
-    
     public String getConnectCustomer(){
         ArrayList<String> connectedIp=new ArrayList<String>();
         try {
@@ -46,5 +45,4 @@ public class ConnectCustomer {
         }
         return "Confirm|"+"Connect_Customer"+connectedIp.toString();
     }
-   
 }

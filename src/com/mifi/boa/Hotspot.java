@@ -1,7 +1,6 @@
 package com.mifi.boa;
 
 public class Hotspot {
-	
     private String IpAddr;
     private String HWAddr;
     private String Device;
@@ -23,7 +22,6 @@ public class Hotspot {
         IpAddr = ipAddr;
     }
 
-
     public String getHWAddr() {
         return HWAddr;
     }
@@ -32,7 +30,6 @@ public class Hotspot {
         HWAddr = hWAddr;
     }
 
-
     public String getDevice() {
         return Device;
     }
@@ -40,7 +37,6 @@ public class Hotspot {
     public void setDevice(String device) {
         Device = device;
     }
-
 
     /*public boolean isReachable() {
         return isReachable;
@@ -54,5 +50,4 @@ public class Hotspot {
     	// TODO Auto-generated method stub
     	return IpAddr + HWAddr +Device;
     }
-
 }
