@@ -21,6 +21,7 @@ public class DeviceInfo {
     private ConnectivityManager mCM;
     private TelephonyManager telephonyManager;
     private WifiManager mWifiManager;
+    private BoaReceiver mBoaReceiver;
 
     public static DeviceInfo getInstance(Context mCont){
         if (null == sInstance) {
@@ -29,8 +30,9 @@ public class DeviceInfo {
         return sInstance;
     }
 	
-    private DeviceInfo(Context mCont){
+    private DeviceInfo(Context mCont,BoaReceiver mBoaReceiver){
         mContext = mCont;
+        mBoaReceiver = mBoaReceiver;
         mCM = (ConnectivityManager)mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         telephonyManager = TelephonyManager.from(mContext);
         mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
@@ -81,6 +83,15 @@ public class DeviceInfo {
         mPM.reboot("");
     }
 
+    public String getCommon(){
+		   String mBatteryLevl = mBoaReceiver.getBatterylevl();
+           int networkType = telephonyManager.getNetworkType();
+           String mSpn = telephonyManager.getSimOperatorName();
+           int mRsrp = "";
+            
+           return "Confirm|Common|"+mBatteryLevl+"|"+networkType+"|"+mSpn+"|"+mRsrp;
+    }
+
     public void setReFactory(){
         Intent intent = new Intent(Intent.ACTION_FACTORY_RESET);
         intent.setPackage("android");
@@ -88,4 +99,15 @@ public class DeviceInfo {
         intent.putExtra(Intent.EXTRA_REASON, "CryptKeeper.MAX_FAILED_ATTEMPTS");
         mContext.sendBroadcast(intent);
     }
+
+   /* PhoneStateListener phoneStateListener = new PhoneStateListener() {  
+  
+            @Override  
+            public void onSignalStrengthsChanged(SignalStrength signalStrength) {  
+                // TODO Auto-generated method stub  
+                super.onSignalStrengthsChanged(signalStrength);  
+               
+            }  
+  
+        }; */ 
 }

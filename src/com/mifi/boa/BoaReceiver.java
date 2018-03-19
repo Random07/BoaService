@@ -8,6 +8,7 @@ import android.os.BatteryManager;
 
 public class BoaReceiver extends BroadcastReceiver {
     static final String TAG = "BoaReceiver";
+    public String batterylevl;
     
     public BoaReceiver() {
 
@@ -17,16 +18,19 @@ public class BoaReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
         if (Intent.ACTION_BATTERY_CHANGED.equals(action)) {
-            String batterylevl = getBatterylevl(intent);
+            batterylevl = getBatterylevlFromIntent(intent);
             android.util.Log.d(TAG,batterylevl);
         }
     }
 
-    private String getBatterylevl(Intent intent) {
+    private String getBatterylevlFromIntent(Intent intent) {
         int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
         int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, 100);
         double percentage = (level * 100) / scale;
         return NumberFormat.getPercentInstance().format(percentage);
     }
+    public String getBatterylevl(){
+          return batterylevl;
+        }
 }
 

@@ -75,7 +75,7 @@ public class BoaService extends Service {
         mBoaReceiver = new BoaReceiver();
         mAccount = Account.getInstance(mContext);
         mConnectCustomer = ConnectCustomer.getInstance();
-        mDeviceInfo = DeviceInfo.getInstance(mContext);
+        mDeviceInfo = DeviceInfo.getInstance(mContext,mBoaReceiver);
         mUserData = UserData.getInstance(mContext);
         mApnSettings = ApnSettings.getInstance(mContext);
         mWiFiSettings = WiFiSettings.getInstance(mContext);
@@ -188,6 +188,9 @@ public class BoaService extends Service {
                         break;
                         case "ReFactory":
                             mDeviceInfo.setReFactory(); 
+                        break;
+                        case "Common":
+                            mFlushString = mDeviceInfo.getCommon(); 
                         break;
                         default:
                             android.util.Log.d(TAG,mAction+" not support!");
