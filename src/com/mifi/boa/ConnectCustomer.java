@@ -9,6 +9,8 @@ import java.net.InetAddress;
 
 public class ConnectCustomer {
     private static ConnectCustomer sInstance;
+    private BufferedReader br;
+    private String connectedIp = "";
 
     public static ConnectCustomer getInstance(){
         if (null == sInstance) {
@@ -22,18 +24,35 @@ public class ConnectCustomer {
      * @return
      */
     public String getConnectCustomer(){
-        ArrayList<String> connectedIp=new ArrayList<String>();
+    
+         CustomerThread mCustomerThread = new CustomerThread();
+         mCustomerThread.start(); 
+         try {
+               Thread.sleep(500);
+             } catch (InterruptedException e) {
+               e.printStackTrace();
+            }
+             
+           return "Confirm|"+"Connect_Customer"+connectedIp;
+     }
+
+    public class CustomerThread extends Thread {
+
+        @Override  
+        public void run(){  
         try {
-            BufferedReader br=new BufferedReader(new FileReader("/proc/net/arp"));
+            br=new BufferedReader(new FileReader("/proc/net/arp"));
+            connectedIp = "";
             String line;
             while ((line=br.readLine())!=null){
                 String[] splitted=line.split(" +");
                 if (splitted !=null && splitted.length>=4){
                     String mac=splitted[3];
                     if(mac.matches("..:..:..:..:..:..")){
-                        boolean isReachable = InetAddress.getByName(splitted[0]).isReachable(-1);
+                        boolean isReachable = InetAddress.getByName(splitted[0]).isReachable(500);
+                        android.util.Log.d("BoaService","customName"+splitted[0]);
                         if(isReachable){
-                            connectedIp.add("|"+splitted[0]+"|"+splitted[3]+"|"+splitted[5]);
+                            connectedIp +=("|"+splitted[0]+"|"+splitted[3]+"|"+splitted[5]);
                         }
                     }
                 }
@@ -42,7 +61,15 @@ public class ConnectCustomer {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        }finally {  
+                try {  
+                    br.close();  
+                } catch (IOException e) {  
+                    e.printStackTrace();  
+             }  
         }
-        return "Confirm|"+"Connect_Customer"+connectedIp.toString();
+      }
+
     }
+    
 }

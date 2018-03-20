@@ -30,8 +30,6 @@ import android.content.IntentFilter;
 
 public class BoaService extends Service {
     static final String TAG = "BoaService";
-    private ArrayList<Hotspot> result = null;
-    private String hotspotString="";
     private ConnectivityManager mCm;
     private WifiManager mWifiManager;
     private WifiConfiguration mWifiConfig = null;
@@ -56,7 +54,7 @@ public class BoaService extends Service {
         android.util.Log.d(TAG,"Service start");
 		initInstance();
         mContext.registerReceiver(mBoaReceiver,new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-        mWiFiSettings.startWifiAp();
+        //mWiFiSettings.startWifiAp();
         mWiFiSettings.ConfigWifiAp("Lichuan",false,2,"12345678",6);
         android.util.Log.d(TAG,mWiFiSettings.getWiFiInfo());
         android.util.Log.d(TAG,mDeviceInfo.getDeviceInfo());
@@ -205,6 +203,7 @@ public class BoaService extends Service {
                             android.util.Log.d(TAG,mAction+" not support!");
                         break;
                     }
+                    android.util.Log.d(TAG,mFlushString+"sendMessage");
                     if(!TextUtils.isEmpty(mFlushString)){
                         bufWrite.write(mFlushString+"\r\n\r\n");
                         bufWrite.flush(); 
