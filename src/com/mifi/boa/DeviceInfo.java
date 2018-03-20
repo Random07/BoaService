@@ -12,6 +12,8 @@ import android.net.LinkProperties;
 import java.net.InetAddress;
 import java.util.Iterator;
 import android.os.PowerManager;
+import android.telephony.SignalStrength;
+import android.telephony.PhoneStateListener;
 import android.content.Intent;
 
 public class DeviceInfo {
@@ -22,10 +24,11 @@ public class DeviceInfo {
     private TelephonyManager telephonyManager;
     private WifiManager mWifiManager;
     private BoaReceiver mBoaReceiver;
+    private MyPhoneStateListener mMyPhoneStateListener;
 
-    public static DeviceInfo getInstance(Context mCont){
+    public static DeviceInfo getInstance(Context mCont,BoaReceiver mBoaReceiver){
         if (null == sInstance) {
-            sInstance = new DeviceInfo(mCont);
+            sInstance = new DeviceInfo(mCont,mBoaReceiver);
         }
         return sInstance;
     }
@@ -36,6 +39,7 @@ public class DeviceInfo {
         mCM = (ConnectivityManager)mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         telephonyManager = TelephonyManager.from(mContext);
         mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+        mMyPhoneStateListener = new MyPhoneStateListener();
     }
 
     public String getDeviceInfo(){
@@ -87,10 +91,14 @@ public class DeviceInfo {
 		   String mBatteryLevl = mBoaReceiver.getBatterylevl();
            int networkType = telephonyManager.getNetworkType();
            String mSpn = telephonyManager.getSimOperatorName();
-           int mRsrp = "";
+           int mRsrp = mMyPhoneStateListener.getSignalStrength();
             
            return "Confirm|Common|"+mBatteryLevl+"|"+networkType+"|"+mSpn+"|"+mRsrp;
     }
+
+     public void setDataClose(){
+          telephonyManager.setDataEnabled(false);
+     }
 
     public void setReFactory(){
         Intent intent = new Intent(Intent.ACTION_FACTORY_RESET);
@@ -100,14 +108,22 @@ public class DeviceInfo {
         mContext.sendBroadcast(intent);
     }
 
-   /* PhoneStateListener phoneStateListener = new PhoneStateListener() {  
-  
+
+    private class MyPhoneStateListener extends PhoneStateListener  {
+            public int mRsrp;
+
             @Override  
             public void onSignalStrengthsChanged(SignalStrength signalStrength) {  
                 // TODO Auto-generated method stub  
-                super.onSignalStrengthsChanged(signalStrength);  
+                super.onSignalStrengthsChanged(signalStrength);
+                mRsrp = signalStrength.getLevel();
                
-            }  
-  
-        }; */ 
+            } 
+
+            private int getSignalStrength(){
+
+                return mRsrp;
+            }
+
+    }
 }

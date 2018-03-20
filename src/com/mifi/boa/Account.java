@@ -6,6 +6,7 @@ import android.os.SystemProperties;
 public class Account {
     final String MIFI_USERNAME = "persist.sys.user.name";
     final String MIFI_PASSWORD = "persist.sys.user.password";
+    final String MIFI_LANGUAGE = "persist.sys.user.language";
     private static Account sInstance;
     private Context mContext;
     public static Account getInstance(Context mCont){
@@ -29,4 +30,14 @@ public class Account {
         SystemProperties.set(MIFI_USERNAME,mData[2]);
         SystemProperties.set(MIFI_PASSWORD,mData[3]);
     }
+ 
+    public String getLanguage(){
+        
+           return ("Confirm|Login|" + SystemProperties.get(MIFI_LANGUAGE,"1"));
+    }
+    public void SetLanguage(String data){
+        String[] mData = data.split("\\|");
+        SystemProperties.set(MIFI_LANGUAGE,mData[2]);
+    }
+    
 }

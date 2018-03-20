@@ -131,11 +131,11 @@ public class BoaService extends Service {
                 socket.setKeepAlive(true);  
                 OutputStream osSend = socket.getOutputStream();  
                 OutputStreamWriter osWrite = new OutputStreamWriter(osSend);  
-                final BufferedWriter bufWrite = new BufferedWriter(osWrite);  
+                BufferedWriter bufWrite = new BufferedWriter(osWrite);  
                 socket.setOOBInline(true);  
                 socket.sendUrgentData(0x44);//"D"  
-                bufWrite.write("HiIamLichuan \r\n\r\n");
-                bufWrite.flush();  
+                //bufWrite.write("HiIamLichuan \r\n\r\n");
+                //bufWrite.flush();  
                 android.util.Log.d(TAG,"write ok"); 
                 boolean goon=true;
                 while(goon){        
@@ -192,6 +192,15 @@ public class BoaService extends Service {
                         case "Common":
                             mFlushString = mDeviceInfo.getCommon(); 
                         break;
+                        case "CloseData":
+                            mDeviceInfo.setDataClose();
+                        break;
+                        case "GetLanguage":
+                           mFlushString =mAccount.getLanguage();
+                        break;
+                        case "SetLanguage":
+                            mAccount.SetLanguage(string);
+                        break;
                         default:
                             android.util.Log.d(TAG,mAction+" not support!");
                         break;
@@ -201,6 +210,11 @@ public class BoaService extends Service {
                         bufWrite.flush(); 
                     }
                 }
+                socket.close();
+                bufWrite.close();
+                br.close();
+                
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
