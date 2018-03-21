@@ -25,11 +25,11 @@ public class ApnSettings {
     private static final int AUTH_TYPE_INDEX = 7;
     private static ApnSettings sInstance;
     ArrayList<ApnInfo> mApnList = new ArrayList<ApnInfo>();
+    ApnInfo mSeletectedApn;
     public static final String APN_ID = "apn_id";
     public static final String PREFERRED_APN_URI =
             "content://telephony/carriers/preferapn";
     public int subid;
-    private SubscriptionInfo mSubscriptionInfo;
     private static String[] sProjection = new String[] {
             Telephony.Carriers._ID,     // 0
             Telephony.Carriers.NAME,    // 1
@@ -52,16 +52,15 @@ public class ApnSettings {
 
     public ApnSettings(Context mCont){
         mContext = mCont;
-        subid = SubscriptionManager.getDefaultVoiceSubscriptionId();
-        mSubscriptionInfo = SubscriptionManager.from(mContext).getActiveSubscriptionInfo(subid);
+        subid = SubscriptionManager.getDefaultSubscriptionId();
+        Log.d(TAG, "subid = " + subid);
     }
-    
-    public String getApns(){
+
+    public void createAllApnList(){
         final TelephonyManager tm = TelephonyManager.from(mContext);
         final String mccmnc = tm.getSimOperatorNumericForPhone(0);
         Log.d(TAG, "mccmnc = " + mccmnc);
         String where = "numeric=\"" + mccmnc + "\"";
-        String mRet = "Confirm|ApnShow";
         String mSelectedApnName = getSelectedApnName();
 
         Log.d(TAG, "mSelectedApnName= " + mSelectedApnName);
@@ -72,7 +71,7 @@ public class ApnSettings {
             mCursor.moveToFirst();
             while (!mCursor.isAfterLast()) {
                 if(mSelectedApnName != null && mSelectedApnName.equals(mCursor.getString(NAME_INDEX))){
-                    ApnInfo mSeletectedApn = new ApnInfo(mCursor.getInt(ID_INDEX),
+                    mSeletectedApn = new ApnInfo(mCursor.getInt(ID_INDEX),
                                                 mCursor.getString(NAME_INDEX),
                                                 mCursor.getString(APN_INDEX),
                                                 mCursor.getString(USER_INDEX),
@@ -80,8 +79,6 @@ public class ApnSettings {
                                                 mCursor.getString(MCC_INDEX),
                                                 mCursor.getString(MNC_INDEX),
                                                 mCursor.getInt(AUTH_TYPE_INDEX));
-                    mRet += "|";
-                    mRet += mSeletectedApn.toString();
                 }else{
                     mApnList.add(new ApnInfo(mCursor.getInt(ID_INDEX),
                                             mCursor.getString(NAME_INDEX),
@@ -96,9 +93,15 @@ public class ApnSettings {
             }
             mCursor.close();
         }else{
-            Log.d(TAG, "mCursor is null");
+            Log.d(TAG, "getApns, mCursor is null");
         }
+    }
 
+    public String getApns(){
+        String mRet = "Confirm|ApnShow|";
+
+        createAllApnList();
+        mRet += mSeletectedApn.toString();
         for(ApnInfo mApn:mApnList){
             mRet += "|";
             mRet += mApn.toString();
@@ -108,31 +111,66 @@ public class ApnSettings {
 
         return mRet;
     }
-    
+
+    public String convertApnToApnId(String apn){
+        String mApnId = "";
+
+        if(!TextUtils.isEmpty(apn)){
+            if(apn.equals(mSeletectedApn.getApn())){
+                mApnId = String.valueOf(mSeletectedApn.getApnIndex());
+            }else{
+                for(ApnInfo mApn:mApnList){
+                    if(apn.equals(mApn.getApn())){
+                        mApnId = String.valueOf(mApn.getApnIndex());
+                        break;
+                    }
+                }
+            }
+        }
+
+        return mApnId;
+    }
+
     public void setSelectedApn(String data){
         ContentResolver resolver = mContext.getContentResolver();
         ContentValues values = new ContentValues();
         String[] mData = data.split("\\|");
+        String mApnId = "";
 
-        Log.d(TAG, "APN_ID = " + mData[2]);
-        values.put(APN_ID, mData[2]);
-        resolver.update(getPreferApnUri(mSubscriptionInfo.getSubscriptionId()), values,
-        null, null);
+        createAllApnList();
+        mApnId = convertApnToApnId(mData[2]);
+        Log.d(TAG, "APN_ID = " + mApnId);
+        if(!TextUtils.isEmpty(mApnId)){
+            values.put(APN_ID, mApnId);
+            resolver.update(getPreferApnUri(subid), values, null, null);
+        }else{
+            Log.d(TAG, "mApnId is null, ignore it!");
+        }
+        mApnList.clear();
     }
-    
+
+    public String getArrayContent(String[] mData, int index){
+        return ((mData.length > index)?mData[index]:"");
+    }
+
     public void addApn(String data){
+        Log.d(TAG, "addApn = " + data);
         String[] mData = data.split("\\|");
-        addApn(mData[2], mData[3], mData[4], mData[5]
-                , mData[6], mData[7], mData[8]);
+        Log.d(TAG, "addApn,arry length = " + mData.length);
+        addApn(getArrayContent(mData,2), getArrayContent(mData,3),
+                getArrayContent(mData,4), getArrayContent(mData,5),
+                getArrayContent(mData,6), getArrayContent(mData,7),
+                getArrayContent(mData,8));
     }
         
     public void addApn(String name, String apn, String mcc, String mnc,
                             String userName, String password, String authType){
+        Log.d(TAG, "name = " + name + "; apn = " + apn + "; mcc = " + mcc + "; mnc = " + mnc
+                + "; userName = " + userName + "; password = " + password + "; authType = " + authType);
         Uri mUri = mContext.getContentResolver().insert(Telephony.Carriers.CONTENT_URI, new ContentValues());
         ContentValues values = new ContentValues();
+        Log.d(TAG, "mUri = " + mUri);
 
-        Log.d(TAG, "mUri = " + mUri + "; name = " + name + "; apn = " + apn + "; mcc = " + mcc + "; mnc = " + mnc 
-                + "; userName = " + userName + "; password = " + password + "; authType = " + authType);
         values.put(Telephony.Carriers.NAME, checkNotSet(name)); // Can not be null
         values.put(Telephony.Carriers.APN, checkNotSet(apn)); // Can not be null
         values.put(Telephony.Carriers.USER, checkNotSet(userName)); // default value is null
@@ -165,17 +203,20 @@ public class ApnSettings {
 
     public String getSelectedApnName() {
         String name = null;
-
-        int subId = mSubscriptionInfo.getSubscriptionId();
-        Cursor cursor = mContext.getContentResolver().query(getPreferApnUri(subId), new String[] { "name" },
+        Cursor cursor = mContext.getContentResolver().query(getPreferApnUri(subid), new String[] { "name" },
                 null, null, Telephony.Carriers.DEFAULT_SORT_ORDER);
 
-        if (cursor.getCount() > 0) {
-            cursor.moveToFirst();
-            name = cursor.getString(0);
+        if(cursor != null){
+            if (cursor.getCount() > 0) {
+                cursor.moveToFirst();
+                name = cursor.getString(0);
+            }
+            cursor.close();
+        }else{
+            Log.d(TAG,"getSelectedApnName(), cursor is null");
         }
-        cursor.close();
         Log.d(TAG,"getSelectedApnName(), name = " + name);
+
         return name;
     }
 

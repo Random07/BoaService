@@ -59,8 +59,8 @@ public class DeviceInfo {
         return "Confirm|"+"DeviceInfo|"+mSimNumber+"|"+mDeviceIMEI+"|"+imsi+"|"+mSSID+"|"+mMaxConnect+"|"+mWanIpAddress+"|"+mSwVersion+"|"+mFirmwareVersion+"|"+mHwVersion;
     }
 
-      private String getIpAddresses() {
-        LinkProperties prop = mCM.getActiveLinkProperties();;
+    private String getIpAddresses() {
+        LinkProperties prop = mCM.getActiveLinkProperties();
         if (prop == null) return null;
         Iterator<InetAddress> iter = prop.getAllAddresses().iterator();
         // If there are no entries, return null
@@ -88,17 +88,17 @@ public class DeviceInfo {
     }
 
     public String getCommon(){
-		   String mBatteryLevl = mBoaReceiver.getBatterylevl();
-           int networkType = telephonyManager.getNetworkType();
-           String mSpn = telephonyManager.getSimOperatorName();
-           int mRsrp = mMyPhoneStateListener.getSignalStrength();
-            
-           return "Confirm|Common|"+mBatteryLevl+"|"+networkType+"|"+mSpn+"|"+mRsrp;
+	   String mBatteryLevl = mBoaReceiver.getBatterylevl();
+       int networkType = telephonyManager.getNetworkType();
+       String mSpn = telephonyManager.getSimOperatorName();
+       int mRsrp = mMyPhoneStateListener.getSignalStrength();
+        
+       return "Confirm|Common|"+mBatteryLevl+"|"+networkType+"|"+mSpn+"|"+mRsrp;
     }
 
-     public void setDataClose(){
-          telephonyManager.setDataEnabled(false);
-     }
+    public void setDataClose(){
+        telephonyManager.setDataEnabled(false);
+    }
 
     public void setReFactory(){
         Intent intent = new Intent(Intent.ACTION_FACTORY_RESET);
@@ -108,22 +108,18 @@ public class DeviceInfo {
         mContext.sendBroadcast(intent);
     }
 
-
     private class MyPhoneStateListener extends PhoneStateListener  {
-            public int mRsrp;
+        public int mRsrp;
 
-            @Override  
-            public void onSignalStrengthsChanged(SignalStrength signalStrength) {  
-                // TODO Auto-generated method stub  
-                super.onSignalStrengthsChanged(signalStrength);
-                mRsrp = signalStrength.getLevel();
-               
-            } 
+        @Override
+        public void onSignalStrengthsChanged(SignalStrength signalStrength) {
+            // TODO Auto-generated method stub  
+            super.onSignalStrengthsChanged(signalStrength);
+            mRsrp = signalStrength.getLevel();
+        }
 
-            private int getSignalStrength(){
-
-                return mRsrp;
-            }
-
+        private int getSignalStrength(){
+            return mRsrp;
+        }
     }
 }

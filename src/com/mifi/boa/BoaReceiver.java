@@ -29,8 +29,9 @@ public class BoaReceiver extends BroadcastReceiver {
         double percentage = (level * 100) / scale;
         return NumberFormat.getPercentInstance().format(percentage);
     }
+
     public String getBatterylevl(){
-          return batterylevl;
-        }
+        return batterylevl;
+    }
 }
 

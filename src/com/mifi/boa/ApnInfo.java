@@ -21,15 +21,22 @@ public class ApnInfo {
     					String mcc,
     					String mnc,
     					int authTypeIndex){
-    	Log.d(TAG, "apninfo index = " + index);
-    	mIndex = index;
-    	mName = name;
-    	mApn = apn;
-    	mMcc = mcc;
+        mIndex = index;
+        mName = name;
+        mApn = apn;
+        mMcc = mcc;
         mMnc = mnc;
         mAuthTypeIndex = authTypeIndex;
         mUserName = userName;
         mPassword = password;
+    }
+
+    public String getApn(){
+        return mApn;
+    }
+
+    public int getApnIndex(){
+        return mIndex;
     }
 
     public String toString(){

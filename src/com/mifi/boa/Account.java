@@ -16,9 +16,9 @@ public class Account {
         return sInstance;
     }
 
-	private Account (Context mCont){
-          mContext = mCont;
-	}
+    private Account (Context mCont){
+        mContext = mCont;
+    }
 
     public String getPasswordAndAccount(){
         return ("Confirm|Login|" + SystemProperties.get(MIFI_USERNAME,"Admin") + "|"
@@ -32,12 +32,11 @@ public class Account {
     }
  
     public String getLanguage(){
-        
-           return ("Confirm|Login|" + SystemProperties.get(MIFI_LANGUAGE,"1"));
+        return ("Confirm|GetLanguage|" + SystemProperties.get(MIFI_LANGUAGE,"1"));
     }
+
     public void SetLanguage(String data){
         String[] mData = data.split("\\|");
         SystemProperties.set(MIFI_LANGUAGE,mData[2]);
     }
-    
 }

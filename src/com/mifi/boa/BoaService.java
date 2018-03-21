@@ -158,13 +158,16 @@ public class BoaService extends Service {
                             mFlushString = mDeviceInfo.getDeviceInfo(); 
                         break;
                         case "DataLimit":
-                            mFlushString = mUserData.setDataLimit(string); 
+                            mUserData.setDataLimit(string);
                         break;
                         case "DataStatic":
                             mFlushString = mUserData.getDataStatic(); 
                         break;
-                        case "NetworkType":
+                        case "SetNetworkType":
                              mUserData.setNetworkType(string); 
+                        break;
+                        case "GetNetworkType":
+                            mFlushString = mUserData.getNetworkType();
                         break;
                         case "ApnShow":
                             mFlushString = mApnSettings.getApns();
@@ -176,19 +179,19 @@ public class BoaService extends Service {
                             mApnSettings.addApn(string);
                         break;
                         case "WIFIShow":
-                            mFlushString = mWiFiSettings.getWiFiInfo(); 
+                            mFlushString = mWiFiSettings.getWiFiInfo();
                         break;
                         case "WIFISetting":
-                            mWiFiSettings.setWiFiInfo(string); 
+                            mWiFiSettings.setWiFiInfo(string);
                         break;
                         case "ReBoot":
-                            mDeviceInfo.setReBoot(); 
+                            mDeviceInfo.setReBoot();
                         break;
                         case "ReFactory":
-                            mDeviceInfo.setReFactory(); 
+                            mDeviceInfo.setReFactory();
                         break;
                         case "Common":
-                            mFlushString = mDeviceInfo.getCommon(); 
+                            mFlushString = mDeviceInfo.getCommon();
                         break;
                         case "CloseData":
                             mDeviceInfo.setDataClose();

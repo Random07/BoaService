@@ -20,7 +20,7 @@ public class WiFiSettings {
     private OnStartTetheringCallback mStartTetheringCallback;
     static final String TAG = "WiFiSettings";
     public static final String WIFI_HOTSPOT_MAX_CLIENT_NUM = "wifi_hotspot_max_client_num";
-	public static final int OPEN_INDEX = 0;
+    public static final int OPEN_INDEX = 0;
     public static final int WPA_INDEX = 1;
     public static final int WPA2_INDEX = 2;
     private String mWifiName;
@@ -36,11 +36,11 @@ public class WiFiSettings {
         return sInstance;
     }
 
-	public WiFiSettings (Context mCont) {
-         mContext = mCont;
-         mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-         mCm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
-	}
+    public WiFiSettings (Context mCont) {
+        mContext = mCont;
+        mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+        mCm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+    }
     
     public String getWiFiInfo(){
         WifiConfiguration mWifiConfig = mWifiManager.getWifiApConfiguration();
@@ -54,8 +54,8 @@ public class WiFiSettings {
     }
     
     public void setWiFiInfo(String str){
-       analysisString(str);
-       ConfigWifiAp(mWifiName,mWifiHide,mSecurityType,mPassWord,mMaxClientNum);
+        analysisString(str);
+        ConfigWifiAp(mWifiName,mWifiHide,mSecurityType,mPassWord,mMaxClientNum);
     }
 
     private int getSecurityType(WifiConfiguration wifiConfig) {
@@ -110,11 +110,9 @@ public class WiFiSettings {
                 config.preSharedKey = mPasw;
                 return config;
         }
-
         return null;
     }
 
-	
     /**
      *    open wifiAp
      * @param mSSID
