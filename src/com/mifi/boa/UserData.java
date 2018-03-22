@@ -45,6 +45,7 @@ public class UserData {
         subInfo = subscriptions.get(0);
         mPolicyManager = NetworkPolicyManager.from(mContext);
         mPolicyEditor = new NetworkPolicyEditor(mPolicyManager);
+        mPolicyEditor.read();
         subid = subInfo.getSubscriptionId();
         Log.d(TAG, "subid = " + subid);
         tm = TelephonyManager.from(mContext);
@@ -64,12 +65,14 @@ public class UserData {
         String[] mData = data.split("\\|");
         long bytes = Long.parseLong(mData[2]);
         long correctedBytes = Math.min(MAX_DATA_LIMIT_BYTES, bytes);
+        mPolicyEditor.read();
         mPolicyEditor.setPolicyLimitBytes(mTemplate, correctedBytes);
     }
 
     public String getDataStatic(){
         DataUsageController controller = new DataUsageController(mContext);
         DataUsageController.DataUsageInfo usageInfo = controller.getDataUsageInfo(mTemplate);
+        mPolicyEditor.read();
         long mLimit = mPolicyEditor.getPolicyLimitBytes(mTemplate);
         return ("Confirm|DataStatic|"+usageInfo.usageLevel+"|"+mLimit);
     }
