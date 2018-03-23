@@ -12,6 +12,7 @@ import android.telephony.TelephonyManager;
 import android.text.format.Formatter;
 import android.telephony.SubscriptionInfo;
 import java.util.List;
+import android.text.format.Time;
 
 public class UserData {
     final String TAG = "BoaService_UserData";
@@ -39,18 +40,24 @@ public class UserData {
 
     public UserData (Context mCont) {
         mContext = mCont;
+        tm = TelephonyManager.from(mContext);
         mSPM = SubscriptionManager.from(mContext);
-        subscriptions = mSPM.getActiveSubscriptionInfoList();
-        Log.d(TAG, "subscriptions.size = " + subscriptions.size());
-        subInfo = subscriptions.get(0);
         mPolicyManager = NetworkPolicyManager.from(mContext);
         mPolicyEditor = new NetworkPolicyEditor(mPolicyManager);
-        mPolicyEditor.read();
-        subid = subInfo.getSubscriptionId();
-        Log.d(TAG, "subid = " + subid);
-        tm = TelephonyManager.from(mContext);
-        mTemplate = getNetworkTemplate(subid);
-        mPolicyEditor.setPolicyCycleDay(mTemplate,31,"Asia/Shanghai");
+    }
+
+    public void getNetworkTemplate(){
+        mTemplate = null;
+        subscriptions = mSPM.getActiveSubscriptionInfoList();
+        if(subscriptions != null){
+            Log.d(TAG, "subscriptions.size = " + subscriptions.size());
+            subInfo = subscriptions.get(0);
+            subid = subInfo.getSubscriptionId();
+            Log.d(TAG, "subid = " + subid);
+            mTemplate = getNetworkTemplate(subid);
+        }else{
+            Log.d(TAG, "subscriptions is null!");
+        }
     }
 
     public NetworkTemplate getNetworkTemplate(int subscriptionId) {
@@ -65,16 +72,60 @@ public class UserData {
         String[] mData = data.split("\\|");
         long bytes = Long.parseLong(mData[2]);
         long correctedBytes = Math.min(MAX_DATA_LIMIT_BYTES, bytes);
-        mPolicyEditor.read();
-        mPolicyEditor.setPolicyLimitBytes(mTemplate, correctedBytes);
+
+        getNetworkTemplate();
+        if(mTemplate != null){
+            mPolicyEditor.read();
+            mPolicyEditor.setPolicyLimitBytes(mTemplate, correctedBytes);
+        }else{
+            Log.d(TAG, "get network template fail,do not set data limit!");
+        }
     }
 
+    public void setDataCycle(String data){
+        String[] mData = data.split("\\|");
+        int day = Integer.parseInt(mData[2]);
+        String cycleTimezone = new Time().timezone;
+
+        getNetworkTemplate();
+        if(mTemplate != null){
+            mPolicyEditor.read();
+            Log.d(TAG, "day = "+day+"; cycleTimezone = " + cycleTimezone);
+            mPolicyEditor.setPolicyCycleDay(mTemplate,day,cycleTimezone);
+        }else{
+            Log.d(TAG, "get network template fail,do not set data cycle!");
+        }
+    }
+
+    public int getDataCycle(){
+        int day = -1;
+
+        getNetworkTemplate();
+        if(mTemplate != null){
+            mPolicyEditor.read();
+            day = mPolicyEditor.getPolicyCycleDay(mTemplate);
+        }else{
+            Log.d(TAG, "get network template fail,do not set data cycle!");
+        }
+
+        return day;
+    }
     public String getDataStatic(){
         DataUsageController controller = new DataUsageController(mContext);
-        DataUsageController.DataUsageInfo usageInfo = controller.getDataUsageInfo(mTemplate);
-        mPolicyEditor.read();
-        long mLimit = mPolicyEditor.getPolicyLimitBytes(mTemplate);
-        return ("Confirm|DataStatic|"+usageInfo.usageLevel+"|"+mLimit);
+        String mStr = "Confirm|DataStatic|";
+
+        getNetworkTemplate();
+        if(mTemplate != null){
+            DataUsageController.DataUsageInfo usageInfo = controller.getDataUsageInfo(mTemplate);
+            mPolicyEditor.read();
+            long mLimit = mPolicyEditor.getPolicyLimitBytes(mTemplate);
+            mStr += usageInfo.usageLevel+"|"+mLimit;
+        }else{
+            mStr += "|";
+            Log.d(TAG, "get network template fail,so used data and limit data is null!");
+        }
+
+        return mStr;
     }
 
     public void  setNetworkType(String data){
@@ -84,10 +135,5 @@ public class UserData {
 
     public String getNetworkType(){
         return ("Confirm|GetNetworkType|" + String.valueOf(tm.getPreferredNetworkType(subid)));
-    }
-
-    public NetworkTemplate getNetworkTemplate() {
-        return NetworkTemplate.normalize(mTemplate,
-                tm.getMergedSubscriberIds());
     }
 }

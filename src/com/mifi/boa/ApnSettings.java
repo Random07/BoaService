@@ -52,15 +52,14 @@ public class ApnSettings {
 
     public ApnSettings(Context mCont){
         mContext = mCont;
-        subid = SubscriptionManager.getDefaultSubscriptionId();
-        Log.d(TAG, "subid = " + subid);
+    }
+
+    public String getMccMnc(){
+        return TelephonyManager.from(mContext).getSimOperatorNumericForPhone(0);
     }
 
     public void createAllApnList(){
-        final TelephonyManager tm = TelephonyManager.from(mContext);
-        final String mccmnc = tm.getSimOperatorNumericForPhone(0);
-        Log.d(TAG, "mccmnc = " + mccmnc);
-        String where = "numeric=\"" + mccmnc + "\"";
+        String where = "numeric=\"" + getMccMnc() + "\"";
         String mSelectedApnName = getSelectedApnName();
 
         Log.d(TAG, "mSelectedApnName= " + mSelectedApnName);
@@ -100,6 +99,11 @@ public class ApnSettings {
     public String getApns(){
         String mRet = "Confirm|ApnShow|";
 
+        if(TextUtils.isEmpty(getMccMnc())){
+            Log.d(TAG, "mccmnc is null, ignore it!");
+            return mRet;
+        }
+
         createAllApnList();
         mRet += mSeletectedApn.toString();
         for(ApnInfo mApn:mApnList){
@@ -132,6 +136,11 @@ public class ApnSettings {
     }
 
     public void setSelectedApn(String data){
+        if(TextUtils.isEmpty(getMccMnc())){
+            Log.d(TAG, "mccmnc is null, ignore it!");
+            return;
+        }
+
         ContentResolver resolver = mContext.getContentResolver();
         ContentValues values = new ContentValues();
         String[] mData = data.split("\\|");
@@ -141,6 +150,7 @@ public class ApnSettings {
         mApnId = convertApnToApnId(mData[2]);
         Log.d(TAG, "APN_ID = " + mApnId);
         if(!TextUtils.isEmpty(mApnId)){
+            int subid = SubscriptionManager.getDefaultSubscriptionId();
             values.put(APN_ID, mApnId);
             resolver.update(getPreferApnUri(subid), values, null, null);
         }else{
@@ -203,6 +213,7 @@ public class ApnSettings {
 
     public String getSelectedApnName() {
         String name = null;
+        int subid = SubscriptionManager.getDefaultSubscriptionId();
         Cursor cursor = mContext.getContentResolver().query(getPreferApnUri(subid), new String[] { "name" },
                 null, null, Telephony.Carriers.DEFAULT_SORT_ORDER);
 
