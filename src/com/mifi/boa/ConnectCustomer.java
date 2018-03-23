@@ -6,18 +6,70 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetAddress;
+import android.os.FileObserver;
+import android.os.Environment; 
 
 public class ConnectCustomer {
     private static ConnectCustomer sInstance;
     private BufferedReader br;
     private String connectedIp = "";
+     static final String TAG = "BoaService";
 
     public static ConnectCustomer getInstance(){
         if (null == sInstance) {
             sInstance = new ConnectCustomer();
+            
         }
         return sInstance;
     }
+
+    public ConnectCustomer (){
+           
+
+    }
+
+    public void init(){
+        android.util.Log.d(TAG,"mObserver");
+        CustomerFileObserver mObserver = new CustomerFileObserver("/proc/net/arp");
+        mObserver.startWatching(); 
+    }
+
+    private class CustomerFileObserver extends FileObserver{
+
+
+         public CustomerFileObserver(String path) {  
+            super(path,FileObserver.ALL_EVENTS);  
+        }  
+
+
+          @Override
+        public void startWatching() {
+        android.util.Log.d(TAG,"startWatching");
+            super.startWatching();
+         
+        }
+
+           @Override
+        public void stopWatching() {
+        android.util.Log.d(TAG,"stopWatching");
+            super.stopWatching();
+         
+        }
+
+          @Override
+         public void onEvent(int event, String path) {
+            android.util.Log.d(TAG,"event" + event+"path"+path);
+            int el = event & FileObserver.ALL_EVENTS;
+            switch (el) {
+            case FileObserver.MODIFY:
+              android.util.Log.d(TAG,"Change");
+              CustomerThread mCustomerThread = new CustomerThread();
+             mCustomerThread.start(); 
+            break;  
+          }
+
+    }
+        }
 
 	/**
      * @parameter ReachableTimeout reach timeout
@@ -27,11 +79,11 @@ public class ConnectCustomer {
     
          CustomerThread mCustomerThread = new CustomerThread();
          mCustomerThread.start(); 
-         try {
-               Thread.sleep(500);
-             } catch (InterruptedException e) {
-               e.printStackTrace();
-            }
+          try {  
+            mCustomerThread.join();  
+          } catch (InterruptedException e) {  
+            e.printStackTrace();  
+          } 
              
            return "Confirm|"+"Connect_Customer"+connectedIp;
      }
@@ -57,6 +109,7 @@ public class ConnectCustomer {
                     }
                 }
             }
+            android.util.Log.d(TAG,"connectedIp" + connectedIp);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {

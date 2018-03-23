@@ -8,7 +8,7 @@ import android.os.BatteryManager;
 
 public class BoaReceiver extends BroadcastReceiver {
     static final String TAG = "BoaReceiver";
-    public String batterylevl;
+    public String batterylevl="";
     
     public BoaReceiver() {
 

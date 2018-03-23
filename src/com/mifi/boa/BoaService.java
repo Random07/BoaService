@@ -27,6 +27,9 @@ import android.text.TextUtils;
 import android.os.Handler;
 import android.os.IBinder;
 import android.content.IntentFilter;
+import android.net.Uri;
+import android.content.ContentResolver;
+
 
 public class BoaService extends Service {
     static final String TAG = "BoaService";
@@ -41,6 +44,7 @@ public class BoaService extends Service {
     private ApnSettings mApnSettings;
     private WiFiSettings mWiFiSettings;
     private BoaReceiver mBoaReceiver;
+    private SmsContextObserver mSmsContextObserver;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -53,11 +57,15 @@ public class BoaService extends Service {
         // TODO Auto-generated method stub
         android.util.Log.d(TAG,"Service start");
 		initInstance();
+        if (mBoaReceiver != null) {
         mContext.registerReceiver(mBoaReceiver,new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+            }
+         if (mSmsContextObserver != null) {
+            getContentResolver().registerContentObserver(Uri.parse("content://sms/"), true, mSmsContextObserver);
+        }
         //mWiFiSettings.startWifiAp();
         mWiFiSettings.ConfigWifiAp("Lichuan",false,2,"12345678",6);
-        android.util.Log.d(TAG,mWiFiSettings.getWiFiInfo());
-        android.util.Log.d(TAG,mDeviceInfo.getDeviceInfo());
+        mSmsContextObserver.getSmsFromPhone();
         new ServerListener().start();		
         return START_STICKY;
     }
@@ -65,7 +73,12 @@ public class BoaService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if (mBoaReceiver != null) {
         mContext.unregisterReceiver(mBoaReceiver);
+            }
+        if (mSmsContextObserver != null) {
+            getContentResolver().unregisterContentObserver(mSmsContextObserver);
+        }
     }
 
     private void initInstance() {
@@ -77,6 +90,7 @@ public class BoaService extends Service {
         mUserData = UserData.getInstance(mContext);
         mApnSettings = ApnSettings.getInstance(mContext);
         mWiFiSettings = WiFiSettings.getInstance(mContext);
+        mSmsContextObserver = SmsContextObserver.getInstance(mContext);
     }
 
     /**
@@ -121,20 +135,19 @@ public class BoaService extends Service {
                 android.util.Log.d(TAG,"serverSocket BufferedReader start");
 
                 BufferedReader br=new BufferedReader(new InputStreamReader(socket.getInputStream()));//br.readLine();// success...  
-                socket.setSoTimeout(5000);  
-                socket.setTcpNoDelay(true);   
-                socket.setSoLinger(true, 30);  
-                socket.setSendBufferSize(4096);  
-                socket.setReceiveBufferSize(4096);  
-                socket.setKeepAlive(true);  
+                /*socket.setSoTimeout(5000);  
+                        socket.setTcpNoDelay(true);   
+                       socket.setSoLinger(true, 30);  
+                       socket.setSendBufferSize(4096);  
+                       socket.setReceiveBufferSize(4096);  
+                       socket.setKeepAlive(true);  (*/
                 OutputStream osSend = socket.getOutputStream();  
                 OutputStreamWriter osWrite = new OutputStreamWriter(osSend);  
                 BufferedWriter bufWrite = new BufferedWriter(osWrite);  
-                socket.setOOBInline(true);  
-                socket.sendUrgentData(0x44);//"D"  
+                //socket.setOOBInline(true);  
+                //socket.sendUrgentData(0x44);//"D"  
                 //bufWrite.write("HiIamLichuan \r\n\r\n");
                 //bufWrite.flush();  
-                android.util.Log.d(TAG,"write ok"); 
                 boolean goon=true;
                 while(goon){        
                     String string = br.readLine();
@@ -142,6 +155,7 @@ public class BoaService extends Service {
                     android.util.Log.d(TAG,"S:receive data:("+string+")");
                     String mAction = getAction(string);
                     if(mAction == null || "".equals(mAction))continue;
+                    if(mAction != null) goon = false;
                     android.util.Log.d(TAG,"action = " + mAction);
                     String  mFlushString = "";
                     switch (mAction){
@@ -212,9 +226,10 @@ public class BoaService extends Service {
                         bufWrite.flush(); 
                     }
                 }
-                socket.close();
                 bufWrite.close();
                 br.close();
+                socket.close();
+                
                 
 
             } catch (Exception e) {
