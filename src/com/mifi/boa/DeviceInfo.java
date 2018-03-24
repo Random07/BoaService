@@ -101,10 +101,15 @@ public class DeviceInfo {
     }
 
     public void setReFactory(){
-        Intent intent = new Intent(Intent.ACTION_FACTORY_RESET);
+        /*Intent intent = new Intent(Intent.ACTION_FACTORY_RESET);
         intent.setPackage("android");
         intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         intent.putExtra(Intent.EXTRA_REASON, "CryptKeeper.MAX_FAILED_ATTEMPTS");
+        mContext.sendBroadcast(intent);*/
+        Intent intent = new Intent(Intent.ACTION_MASTER_CLEAR);
+        intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
+        intent.putExtra(Intent.EXTRA_REASON, "MasterClearConfirm");
+        intent.putExtra(Intent.EXTRA_WIPE_EXTERNAL_STORAGE, true);
         mContext.sendBroadcast(intent);
     }
 
