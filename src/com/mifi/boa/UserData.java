@@ -28,8 +28,6 @@ public class UserData {
     TelephonyManager tm;
     NetworkTemplate mTemplate;
     SubscriptionManager mSPM;
-    List<SubscriptionInfo> subscriptions;
-    SubscriptionInfo subInfo;
 
     public static UserData getInstance(Context mCont){
         if (null == sInstance) {
@@ -46,17 +44,24 @@ public class UserData {
         mPolicyEditor = new NetworkPolicyEditor(mPolicyManager);
     }
 
+    public void updateSubId(){
+        int[] subId = SubscriptionManager.getSubId(0);
+        if (subId == null || subId.length == 0
+            || !SubscriptionManager.isValidSubscriptionId(subId[0])) {
+            subid = -1;
+        } else {
+            subid = subId[0];
+        }
+        Log.d(TAG, "updateSubId subid = " + subid);
+    }
+
     public void getNetworkTemplate(){
         mTemplate = null;
-        subscriptions = mSPM.getActiveSubscriptionInfoList();
-        if(subscriptions != null){
-            Log.d(TAG, "subscriptions.size = " + subscriptions.size());
-            subInfo = subscriptions.get(0);
-            subid = subInfo.getSubscriptionId();
-            Log.d(TAG, "subid = " + subid);
+        updateSubId();
+        if(SubscriptionManager.isValidSubscriptionId(subid)){
             mTemplate = getNetworkTemplate(subid);
         }else{
-            Log.d(TAG, "subscriptions is null!");
+            Log.d(TAG, "subid is invalid");
         }
     }
 
@@ -68,7 +73,7 @@ public class UserData {
                 tm.getMergedSubscriberIds());
     }
 
-    public void setDataLimit(String data){
+    public String setDataLimit(String data){
         String[] mData = data.split("\\|");
         long bytes = Long.parseLong(mData[2]);
         long correctedBytes = Math.min(MAX_DATA_LIMIT_BYTES, bytes);
@@ -76,9 +81,14 @@ public class UserData {
         getNetworkTemplate();
         if(mTemplate != null){
             mPolicyEditor.read();
+            if(1 != mPolicyEditor.getPolicyCycleDay(mTemplate)){
+                mPolicyEditor.setPolicyCycleDay(mTemplate,1,new Time().timezone);
+            }
             mPolicyEditor.setPolicyLimitBytes(mTemplate, correctedBytes);
+            return "1|DataLimit";
         }else{
             Log.d(TAG, "get network template fail,do not set data limit!");
+            return "0|DataLimit";
         }
     }
 
@@ -112,28 +122,43 @@ public class UserData {
     }
     public String getDataStatic(){
         DataUsageController controller = new DataUsageController(mContext);
-        String mStr = "Confirm|DataStatic|";
+        String mStr = "1|DataStatic|";
 
         getNetworkTemplate();
         if(mTemplate != null){
             DataUsageController.DataUsageInfo usageInfo = controller.getDataUsageInfo(mTemplate);
             mPolicyEditor.read();
+            if(1 != mPolicyEditor.getPolicyCycleDay(mTemplate)){
+                mPolicyEditor.setPolicyCycleDay(mTemplate,1,new Time().timezone);
+            }
             long mLimit = mPolicyEditor.getPolicyLimitBytes(mTemplate);
             mStr += usageInfo.usageLevel+"|"+mLimit;
         }else{
-            mStr += "|";
+            mStr = "0|DataStatic";
             Log.d(TAG, "get network template fail,so used data and limit data is null!");
         }
 
         return mStr;
     }
 
-    public void  setNetworkType(String data){
+    public String  setNetworkType(String data){
         String[] mData = data.split("\\|");
-        tm.setPreferredNetworkType(subid, Integer.parseInt(mData[2]));
+        updateSubId();
+        if(tm.setPreferredNetworkType(subid, Integer.parseInt(mData[2]))){
+            return ("1|SetNetworkType");
+        }else{
+            return ("0|SetNetworkType");
+        }
     }
 
     public String getNetworkType(){
-        return ("Confirm|GetNetworkType|" + String.valueOf(tm.getPreferredNetworkType(subid)));
+        int mNetworkType = -1;
+        updateSubId();
+        mNetworkType = tm.getPreferredNetworkType(subid);
+        if(-1 == mNetworkType){
+            return ("0|GetNetworkType");
+        }else{
+            return ("1|GetNetworkType|" + String.valueOf(mNetworkType));
+        }
     }
 }

@@ -97,11 +97,11 @@ public class ApnSettings {
     }
 
     public String getApns(){
-        String mRet = "Confirm|ApnShow|";
+        String mRet = "1|ApnShow|";
 
         if(TextUtils.isEmpty(getMccMnc())){
             Log.d(TAG, "mccmnc is null, ignore it!");
-            return mRet;
+            return "0|ApnShow";
         }
 
         createAllApnList();
@@ -135,12 +135,13 @@ public class ApnSettings {
         return mApnId;
     }
 
-    public void setSelectedApn(String data){
+    public String setSelectedApn(String data){
         if(TextUtils.isEmpty(getMccMnc())){
             Log.d(TAG, "mccmnc is null, ignore it!");
-            return;
+            return "0|ApnChange";
         }
 
+        String mRet = "1|ApnChange";
         ContentResolver resolver = mContext.getContentResolver();
         ContentValues values = new ContentValues();
         String[] mData = data.split("\\|");
@@ -155,25 +156,28 @@ public class ApnSettings {
             resolver.update(getPreferApnUri(subid), values, null, null);
         }else{
             Log.d(TAG, "mApnId is null, ignore it!");
+            mRet = "0|ApnChange";
         }
         mApnList.clear();
+
+        return mRet;
     }
 
     public String getArrayContent(String[] mData, int index){
         return ((mData.length > index)?mData[index]:"");
     }
 
-    public void addApn(String data){
+    public String addApn(String data){
         Log.d(TAG, "addApn = " + data);
         String[] mData = data.split("\\|");
         Log.d(TAG, "addApn,arry length = " + mData.length);
-        addApn(getArrayContent(mData,2), getArrayContent(mData,3),
+        return addApn(getArrayContent(mData,2), getArrayContent(mData,3),
                 getArrayContent(mData,4), getArrayContent(mData,5),
                 getArrayContent(mData,6), getArrayContent(mData,7),
                 getArrayContent(mData,8));
     }
         
-    public void addApn(String name, String apn, String mcc, String mnc,
+    public String addApn(String name, String apn, String mcc, String mnc,
                             String userName, String password, String authType){
         Log.d(TAG, "name = " + name + "; apn = " + apn + "; mcc = " + mcc + "; mnc = " + mnc
                 + "; userName = " + userName + "; password = " + password + "; authType = " + authType);
@@ -209,6 +213,7 @@ public class ApnSettings {
         values.put(Telephony.Carriers.CARRIER_ENABLED, 1); // default value is 1
 
         mContext.getContentResolver().update(mUri, values, null, null);
+        return "1|ApnAdd";
     }
 
     public String getSelectedApnName() {

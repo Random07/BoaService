@@ -82,9 +82,10 @@ public class DeviceInfo {
         return !TextUtils.isEmpty(macAddress) ? macAddress : "Unavailable";
     }
 
-    public void setReBoot(){
+    public String setReBoot(){
 		PowerManager mPM = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
         mPM.reboot("");
+        return "1|ReBoot";
     }
 
     public String getCommon(){
@@ -100,7 +101,7 @@ public class DeviceInfo {
         telephonyManager.setDataEnabled(false);
     }
 
-    public void setReFactory(){
+    public String setReFactory(){
         /*Intent intent = new Intent(Intent.ACTION_FACTORY_RESET);
         intent.setPackage("android");
         intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
@@ -111,6 +112,7 @@ public class DeviceInfo {
         intent.putExtra(Intent.EXTRA_REASON, "MasterClearConfirm");
         intent.putExtra(Intent.EXTRA_WIPE_EXTERNAL_STORAGE, true);
         mContext.sendBroadcast(intent);
+        return "1|ReFactory";
     }
 
     private class MyPhoneStateListener extends PhoneStateListener  {

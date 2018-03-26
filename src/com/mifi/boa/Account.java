@@ -20,15 +20,36 @@ public class Account {
         mContext = mCont;
     }
 
-    public String getPasswordAndAccount(){
-        return ("Confirm|Login|" + SystemProperties.get(MIFI_USERNAME,"Admin") + "|"
-                + SystemProperties.get(MIFI_PASSWORD,"123321"));
+    public void setUserName(String mUserName){
+        SystemProperties.set(MIFI_USERNAME,mUserName);
     }
 
-    public void setPasswordAndAccount(String data){
+    public String getUserName(){
+        return SystemProperties.get(MIFI_USERNAME,"Admin");
+    }
+
+    public void setPassWord(String mPassWord){
+        SystemProperties.set(MIFI_PASSWORD,mPassWord);
+    }
+
+    public String getPassWord(){
+        return SystemProperties.get(MIFI_PASSWORD,"123321");
+    }
+
+    public String getPasswordAndUserName(){
+        return ("1|Login|" + getUserName() + "|" + getPassWord());
+    }
+
+    public String setPasswordAndUserName(String data){
         String[] mData = data.split("\\|");
-        SystemProperties.set(MIFI_USERNAME,mData[2]);
-        SystemProperties.set(MIFI_PASSWORD,mData[3]);
+        setUserName(mData[2]);
+        setPassWord(mData[3]);
+
+        if(getUserName().equals(mData[2]) && getPassWord().equals(mData[3])){
+            return ("1|SetAccountInfo");
+        }else{
+            return ("0|SetAccountInfo");
+        }
     }
  
     public String getLanguage(){

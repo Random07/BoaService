@@ -160,25 +160,25 @@ public class BoaService extends Service {
                     String  mFlushString = "";
                     switch (mAction){
                         case "Login":
-                            mFlushString = mAccount.getPasswordAndAccount();
+                            mFlushString = mAccount.getPasswordAndUserName();
                         break;
                         case "SetAccountInfo":
-                            mAccount.setPasswordAndAccount(string);
+                            mFlushString = mAccount.setPasswordAndUserName(string);
                             break;
                         case "Connect_Customer":
                             mFlushString = mConnectCustomer.getConnectCustomer();
                         break;
                         case "DeviceInfo":
-                            mFlushString = mDeviceInfo.getDeviceInfo(); 
+                            mFlushString = mDeviceInfo.getDeviceInfo();
                         break;
                         case "DataLimit":
-                            mUserData.setDataLimit(string);
+                            mFlushString = mUserData.setDataLimit(string);
                         break;
                         case "DataStatic":
-                            mFlushString = mUserData.getDataStatic(); 
+                            mFlushString = mUserData.getDataStatic();
                         break;
                         case "SetNetworkType":
-                             mUserData.setNetworkType(string); 
+                             mFlushString = mUserData.setNetworkType(string);
                         break;
                         case "GetNetworkType":
                             mFlushString = mUserData.getNetworkType();
@@ -187,10 +187,10 @@ public class BoaService extends Service {
                             mFlushString = mApnSettings.getApns();
                         break;
                         case "ApnChange":
-                            mApnSettings.setSelectedApn(string);
+                            mFlushString = mApnSettings.setSelectedApn(string);
                         break;
                         case "ApnAdd":
-                            mApnSettings.addApn(string);
+                            mFlushString = mApnSettings.addApn(string);
                         break;
                         case "WIFIShow":
                             mFlushString = mWiFiSettings.getWiFiInfo();
@@ -199,10 +199,10 @@ public class BoaService extends Service {
                             mWiFiSettings.setWiFiInfo(string);
                         break;
                         case "ReBoot":
-                            mDeviceInfo.setReBoot();
+                            mFlushString = mDeviceInfo.setReBoot();
                         break;
                         case "ReFactory":
-                            mDeviceInfo.setReFactory();
+                            mFlushString = mDeviceInfo.setReFactory();
                         break;
                         case "Common":
                             mFlushString = mDeviceInfo.getCommon();
