@@ -130,15 +130,18 @@ public class WiFiSettings {
     public String setWPSConnectMode(String mData){
         String mArrayStr[] = mData.split("\\|");
         WpsInfo config = new WpsInfo();
+        int mWpsMode = Integer.parseInt(mArrayStr[2]);
 
         config.setup = Integer.parseInt(mArrayStr[2]);
-        if(mArrayStr.length == 3){
+        if(mWpsMode == 0){
+            config.setup = WpsInfo.PBC;
             config.BSSID = "any";
-        }else if(mArrayStr.length == 4){
+        }else if(mWpsMode == 1){
+            config.setup = WpsInfo.DISPLAY;
             config.pin = mArrayStr[3];
         }
 
-        if(mWifiManager.getWifiHotspotManager().startApWps(config)){
+        if(mWifiManager.startApWps(config)){
             return "1|SetWPSConnectMode";
         }else{
             return "0|SetWPSConnectMode";
