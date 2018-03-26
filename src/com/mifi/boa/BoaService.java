@@ -216,6 +216,9 @@ public class BoaService extends Service {
                         case "SetLanguage":
                             mAccount.SetLanguage(string);
                         break;
+                        case "SetWPSConnectMode":
+                            mFlushString = mWiFiSettings.setWPSConnectMode(string);
+                        break;
                         default:
                             android.util.Log.d(TAG,mAction+" not support!");
                         break;

@@ -10,6 +10,7 @@ import android.net.wifi.WifiConfiguration.KeyMgmt;
 import android.net.wifi.WifiConfiguration.AuthAlgorithm;
 import android.os.Handler;
 import android.provider.Settings.System;
+import android.net.wifi.WpsInfo;
 
 public class WiFiSettings {
     private static WiFiSettings sInstance;
@@ -124,6 +125,24 @@ public class WiFiSettings {
         android.util.Log.d(TAG,"startWifiAp begin ConnectivityManager");
         mStartTetheringCallback = new OnStartTetheringCallback();
         mCm.startTethering(TETHERING_WIFI, true, mStartTetheringCallback, mHandler);
+    }
+
+    public String setWPSConnectMode(String mData){
+        String mArrayStr[] = mData.split("\\|");
+        WpsInfo config = new WpsInfo();
+
+        config.setup = Integer.parseInt(mArrayStr[2]);
+        if(mArrayStr.length == 3){
+            config.BSSID = "any";
+        }else if(mArrayStr.length == 4){
+            config.pin = mArrayStr[3];
+        }
+
+        if(mWifiManager.getWifiHotspotManager().startApWps(config)){
+            return "1|SetWPSConnectMode";
+        }else{
+            return "0|SetWPSConnectMode";
+        }
     }
 
     private static final class OnStartTetheringCallback extends
