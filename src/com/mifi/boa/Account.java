@@ -2,6 +2,7 @@ package com.mifi.boa;
 
 import android.content.Context;
 import android.os.SystemProperties;
+import android.text.TextUtils;
 
 public class Account {
     final String MIFI_USERNAME = "persist.sys.user.name";
@@ -42,9 +43,13 @@ public class Account {
 
     public String setPasswordAndUserName(String data){
         String[] mData = data.split("\\|");
+
+        if(mData.length < 4 || TextUtils.isEmpty(mData[2]) || TextUtils.isEmpty(mData[3])){
+            return ("0|SetAccountInfo");
+        }
+
         setUserName(mData[2]);
         setPassWord(mData[3]);
-
         if(getUserName().equals(mData[2]) && getPassWord().equals(mData[3])){
             return ("1|SetAccountInfo");
         }else{

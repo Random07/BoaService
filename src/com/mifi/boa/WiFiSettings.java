@@ -11,6 +11,7 @@ import android.net.wifi.WifiConfiguration.AuthAlgorithm;
 import android.os.Handler;
 import android.provider.Settings.System;
 import android.net.wifi.WpsInfo;
+import android.text.TextUtils;
 
 public class WiFiSettings {
     private static WiFiSettings sInstance;
@@ -137,6 +138,9 @@ public class WiFiSettings {
             config.setup = WpsInfo.PBC;
             config.BSSID = "any";
         }else if(mWpsMode == 1){
+            if(mArrayStr.length < 4 || TextUtils.isEmpty(mArrayStr[3])){
+                return "0|SetWPSConnectMode";
+            }
             config.setup = WpsInfo.DISPLAY;
             config.pin = mArrayStr[3];
         }

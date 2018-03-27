@@ -96,6 +96,17 @@ public class ApnSettings {
         }
     }
 
+    public int getApnsNumbers(){
+        int numbers = 0;
+
+        if(mSeletectedApn != null){
+            numbers++;
+        }
+        numbers += mApnList.size();
+
+        Log.d(TAG, "getApnsNumbers,numbers = " + numbers);
+        return numbers;
+    }
     public String getApns(){
         String mRet = "1|ApnShow|";
 
@@ -105,6 +116,8 @@ public class ApnSettings {
         }
 
         createAllApnList();
+        mRet += getApnsNumbers();
+        mRet += "|";
         mRet += mSeletectedApn.toString();
         for(ApnInfo mApn:mApnList){
             mRet += "|";
@@ -176,11 +189,39 @@ public class ApnSettings {
                 getArrayContent(mData,6), getArrayContent(mData,7),
                 getArrayContent(mData,8));
     }
-        
+
+    public boolean isValidApn(String name, String apn, String mcc, String mnc){
+        if(TextUtils.isEmpty(name)){
+            Log.d(TAG, "isValidApn, name is null!");
+            return false;
+        }
+
+        if(TextUtils.isEmpty(apn)){
+            Log.d(TAG, "isValidApn, apn is null!");
+            return false;
+        }
+
+        if(TextUtils.isEmpty(mcc) || mcc.matches("[0-9]+") || mcc.length() != 3){
+            Log.d(TAG, "isValidApn, mcc error!");
+            return false;
+        }
+
+        if(TextUtils.isEmpty(mnc) || mcc.matches("[0-9]+") || mcc.length() < 2 || mcc.length() > 3){
+            Log.d(TAG, "isValidApn, mnc error!");
+            return false;
+        }
+
+        return true;
+    }
+
     public String addApn(String name, String apn, String mcc, String mnc,
                             String userName, String password, String authType){
         Log.d(TAG, "name = " + name + "; apn = " + apn + "; mcc = " + mcc + "; mnc = " + mnc
                 + "; userName = " + userName + "; password = " + password + "; authType = " + authType);
+        if(!isValidApn(name, apn, mcc, mnc)){
+            return "0|ApnAdd";
+        }
+
         Uri mUri = mContext.getContentResolver().insert(Telephony.Carriers.CONTENT_URI, new ContentValues());
         ContentValues values = new ContentValues();
         Log.d(TAG, "mUri = " + mUri);

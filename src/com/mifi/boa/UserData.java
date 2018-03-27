@@ -13,6 +13,7 @@ import android.text.format.Formatter;
 import android.telephony.SubscriptionInfo;
 import java.util.List;
 import android.text.format.Time;
+import android.text.TextUtils;
 
 public class UserData {
     final String TAG = "BoaService_UserData";
@@ -75,6 +76,17 @@ public class UserData {
 
     public String setDataLimit(String data){
         String[] mData = data.split("\\|");
+
+        if(mData.length < 3 || TextUtils.isEmpty(mData[2])){
+            Log.d(TAG, "data error, data is " + data);
+            return "0|DataLimit";
+        }
+
+        if(!mData[2].matches("[0-9]+")){
+            Log.d(TAG, "data error, data is " + data);
+            return "0|DataLimit";
+        }
+
         long bytes = Long.parseLong(mData[2]);
         long correctedBytes = Math.min(MAX_DATA_LIMIT_BYTES, bytes);
 
@@ -143,6 +155,7 @@ public class UserData {
 
     public String  setNetworkType(String data){
         String[] mData = data.split("\\|");
+
         updateSubId();
         if(tm.setPreferredNetworkType(subid, Integer.parseInt(mData[2]))){
             return ("1|SetNetworkType");
