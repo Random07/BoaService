@@ -130,6 +130,10 @@ public class BoaService extends Service {
 
         @Override
         public void run() {
+            if(!mAccount.isAccountValid()){
+                return ;
+            }
+
             try {
                 android.util.Log.d(TAG,"serverSocket BufferedReader start");
 
