@@ -9,7 +9,6 @@ import static android.net.ConnectivityManager.TETHERING_WIFI;
 import android.net.wifi.WifiConfiguration.KeyMgmt;
 import android.net.wifi.WifiConfiguration.AuthAlgorithm;
 import android.os.Handler;
-import android.provider.Settings.System;
 import android.net.wifi.WpsInfo;
 import android.text.TextUtils;
 
@@ -52,12 +51,13 @@ public class WiFiSettings {
         mPassWord = mWifiConfig.preSharedKey;
         mMaxClientNum = System.getInt(mContext.getContentResolver(),WIFI_HOTSPOT_MAX_CLIENT_NUM,5);
         
-        return "Confirm|WIFIShow|"+mWifiName+"|"+mWifiHide+"|"+mSecurityType+"|"+mPassWord+"|"+mMaxClientNum;
+        return "1|WIFIShow|"+mWifiName+"|"+mWifiHide+"|"+mSecurityType+"|"+mPassWord+"|"+mMaxClientNum;
     }
     
-    public void setWiFiInfo(String str){
+    public String setWiFiInfo(String str){
         analysisString(str);
-        ConfigWifiAp(mWifiName,mWifiHide,mSecurityType,mPassWord,mMaxClientNum);
+        String  mSetWifiresult= ConfigWifiAp(mWifiName,mWifiHide,mSecurityType,mPassWord,mMaxClientNum);
+        return mSetWifiresult+"|WIFISetting" ;
     }
 
     private int getSecurityType(WifiConfiguration wifiConfig) {
@@ -80,14 +80,16 @@ public class WiFiSettings {
         mMaxClientNum = Integer.valueOf(mArrayStr[6]);
     }
 
-    public void ConfigWifiAp(String mSSID ,boolean mHidSSID ,int mSecurityType,String  mPasw,int mMaxCl ) {
+    public String ConfigWifiAp(String mSSID ,boolean mHidSSID ,int mSecurityType,String  mPasw,int mMaxCl ) {
         if (mWifiManager.getWifiApState() == WifiManager.WIFI_AP_STATE_ENABLED) {
             android.util.Log.d(TAG,"Wifi AP config changed while enabled, stop and restart");
             mCm.stopTethering(TETHERING_WIFI);
         }
         WifiConfiguration mWifiConfig = getWifiApConfig(mSSID,mHidSSID,mSecurityType,mPasw,mMaxCl);
-        mWifiManager.setWifiApConfiguration(mWifiConfig);
-        startWifiAp();
+        boolean mConfigResultboolean = mWifiManager.setWifiApConfiguration(mWifiConfig);
+        String mConfigResult = mConfigResultboolean == true ? "1" : "0";
+        
+        return mConfigResult;
     }
 
     public WifiConfiguration getWifiApConfig(String mSSID ,boolean mHidSSID,int mSecurityType ,String mPasw,int mMaxCl) {
@@ -123,7 +125,6 @@ public class WiFiSettings {
      */
     public void startWifiAp(){
         android.util.Log.d(TAG,"startWifiAp begin");
-        android.util.Log.d(TAG,"startWifiAp begin ConnectivityManager");
         mStartTetheringCallback = new OnStartTetheringCallback();
         mCm.startTethering(TETHERING_WIFI, true, mStartTetheringCallback, mHandler);
     }

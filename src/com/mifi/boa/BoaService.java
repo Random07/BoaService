@@ -65,7 +65,6 @@ public class BoaService extends Service {
         }
         //mWiFiSettings.startWifiAp();
         mWiFiSettings.ConfigWifiAp("Lichuan",false,2,"12345678",6);
-        mSmsContextObserver.getSmsFromPhone();
         new ServerListener().start();		
         return START_STICKY;
     }
@@ -86,11 +85,11 @@ public class BoaService extends Service {
         mBoaReceiver = new BoaReceiver();
         mAccount = Account.getInstance(mContext);
         mConnectCustomer = ConnectCustomer.getInstance();
-        mDeviceInfo = DeviceInfo.getInstance(mContext,mBoaReceiver);
         mUserData = UserData.getInstance(mContext);
         mApnSettings = ApnSettings.getInstance(mContext);
         mWiFiSettings = WiFiSettings.getInstance(mContext);
         mSmsContextObserver = SmsContextObserver.getInstance(mContext);
+        mDeviceInfo = DeviceInfo.getInstance(mContext,mBoaReceiver,mSmsContextObserver);
     }
 
     /**
@@ -196,7 +195,7 @@ public class BoaService extends Service {
                             mFlushString = mWiFiSettings.getWiFiInfo();
                         break;
                         case "WIFISetting":
-                            mWiFiSettings.setWiFiInfo(string);
+                            mFlushString = mWiFiSettings.setWiFiInfo(string);
                         break;
                         case "ReBoot":
                             mFlushString = mDeviceInfo.setReBoot();
@@ -214,7 +213,34 @@ public class BoaService extends Service {
                            mFlushString =mAccount.getLanguage();
                         break;
                         case "SetLanguage":
-                            mAccount.SetLanguage(string);
+                           mFlushString = mAccount.SetLanguage(string);
+                        break;
+                        case "GetSmsContent":
+                           mFlushString = mSmsContextObserver.getSmsFromPhone(string);
+                        break;
+                        case "CleanSmsUnread":
+                           mFlushString = mSmsContextObserver.CleanSmsUnread(string); 
+                        break;
+                        case "DeleteSms":
+                           mFlushString = mSmsContextObserver.DeleteSmsFromPhone(string); 
+                        break;
+                        case "SendSms":
+                           mFlushString = mSmsContextObserver.SendSms(string); 
+                        break;
+                        case "GetScAddress":
+                           mFlushString = mSmsContextObserver.getScAddress();
+                        break;
+                        case "SetSMsVaildTime":
+                           mFlushString = mSmsContextObserver.setSMsVaildTime(string);
+                        break;
+                        case "GetSMsVaildTime":
+                           mFlushString = mSmsContextObserver.getSMsVaildTime();
+                        break;
+                        case "SetSMsReport":
+                           mFlushString = mSmsContextObserver.setSMsReport(string);
+                        break;
+                        case "GetSMsReport":
+                           mFlushString = mSmsContextObserver.getSMsReport();
                         break;
                         case "SetWPSConnectMode":
                             mFlushString = mWiFiSettings.setWPSConnectMode(string);

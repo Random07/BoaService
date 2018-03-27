@@ -85,7 +85,7 @@ public class ConnectCustomer {
             e.printStackTrace();  
           } 
              
-           return "Confirm|"+"Connect_Customer"+connectedIp;
+           return "1|"+"Connect_Customer"+connectedIp;
      }
 
     public class CustomerThread extends Thread {

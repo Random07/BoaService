@@ -15,6 +15,7 @@ import android.os.PowerManager;
 import android.telephony.SignalStrength;
 import android.telephony.PhoneStateListener;
 import android.content.Intent;
+import android.os.BatteryManager;
 
 public class DeviceInfo {
     private static DeviceInfo sInstance;
@@ -25,17 +26,19 @@ public class DeviceInfo {
     private WifiManager mWifiManager;
     private BoaReceiver mBoaReceiver;
     private MyPhoneStateListener mMyPhoneStateListener;
+    private SmsContextObserver mSmsContextObserver;
 
-    public static DeviceInfo getInstance(Context mCont,BoaReceiver mBoaReceiver){
+    public static DeviceInfo getInstance(Context mCont,BoaReceiver mBoaReceiver,SmsContextObserver mSmsObserver){
         if (null == sInstance) {
-            sInstance = new DeviceInfo(mCont,mBoaReceiver);
+            sInstance = new DeviceInfo(mCont,mBoaReceiver,mSmsObserver);
         }
         return sInstance;
     }
 	
-    private DeviceInfo(Context mCont,BoaReceiver mBoaReceiver){
+    private DeviceInfo(Context mCont,BoaReceiver mBoaSer,SmsContextObserver mSmsObserver){
         mContext = mCont;
-        mBoaReceiver = mBoaReceiver;
+        mBoaReceiver = mBoaSer;
+        mSmsContextObserver = mSmsObserver;
         mCM = (ConnectivityManager)mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         telephonyManager = TelephonyManager.from(mContext);
         mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
@@ -56,7 +59,7 @@ public class DeviceInfo {
         String mFirmwareVersion = "Not Know";
         String mHwVersion ="Not Know";
 		
-        return "Confirm|"+"DeviceInfo|"+mSimNumber+"|"+mDeviceIMEI+"|"+imsi+"|"+mSSID+"|"+mMaxConnect+"|"+mWanIpAddress+"|"+mSwVersion+"|"+mFirmwareVersion+"|"+mHwVersion;
+        return "1|"+"DeviceInfo|"+mSimNumber+"|"+mDeviceIMEI+"|"+imsi+"|"+mSSID+"|"+mMaxConnect+"|"+mWanIpAddress+"|"+mSwVersion+"|"+mFirmwareVersion+"|"+mHwVersion;
     }
 
     private String getIpAddresses() {
@@ -89,12 +92,16 @@ public class DeviceInfo {
     }
 
     public String getCommon(){
-	   String mBatteryLevl = mBoaReceiver.getBatterylevl();
+	   //String mBatteryLevl = mBoaReceiver.getBatterylevl();
+	   BatteryManager battMgr = (BatteryManager) mContext.getSystemService(Context.BATTERY_SERVICE);
+       int mPercent = battMgr.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
        int networkType = telephonyManager.getNetworkType();
        String mSpn = telephonyManager.getSimOperatorName();
        int mRsrp = mMyPhoneStateListener.getSignalStrength();
+       int mMaxConnect = System.getInt(mContext.getContentResolver(),WIFI_HOTSPOT_MAX_CLIENT_NUM,5);
+       int mUnreadSms =mSmsContextObserver.getUnreadSmsCount();
         
-       return "Confirm|Common|"+mBatteryLevl+"|"+networkType+"|"+mSpn+"|"+mRsrp;
+       return "1|Common"+"|"+mMaxConnect+"|"+mUnreadSms+"|"+mPercent+"|"+networkType+"|"+mSpn+"|"+mRsrp;
     }
 
     public void setDataClose(){

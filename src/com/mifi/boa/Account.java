@@ -58,11 +58,12 @@ public class Account {
     }
  
     public String getLanguage(){
-        return ("Confirm|GetLanguage|" + SystemProperties.get(MIFI_LANGUAGE,"1"));
+        return ("1|GetLanguage|" + SystemProperties.get(MIFI_LANGUAGE,"1"));
     }
 
-    public void SetLanguage(String data){
+    public String SetLanguage(String data){
         String[] mData = data.split("\\|");
         SystemProperties.set(MIFI_LANGUAGE,mData[2]);
+        return "1|GetLanguage";
     }
 }
