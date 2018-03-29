@@ -138,6 +138,7 @@ public class ApnSettings {
             }else{
                 for(ApnInfo mApn:mApnList){
                     if(apn.equals(mApn.getApn())){
+                        Log.d(TAG, "setApn = " + mApn.toString());
                         mApnId = String.valueOf(mApn.getApnIndex());
                         break;
                     }
@@ -201,12 +202,12 @@ public class ApnSettings {
             return false;
         }
 
-        if(TextUtils.isEmpty(mcc) || mcc.matches("[0-9]+") || mcc.length() != 3){
+        if(TextUtils.isEmpty(mcc) || !mcc.matches("[0-9]+") || mcc.length() != 3){
             Log.d(TAG, "isValidApn, mcc error!");
             return false;
         }
 
-        if(TextUtils.isEmpty(mnc) || mcc.matches("[0-9]+") || mcc.length() < 2 || mcc.length() > 3){
+        if(TextUtils.isEmpty(mnc) || !mnc.matches("[0-9]+") || mnc.length() < 2 || mnc.length() > 3){
             Log.d(TAG, "isValidApn, mnc error!");
             return false;
         }
