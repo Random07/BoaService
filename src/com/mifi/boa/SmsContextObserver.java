@@ -21,9 +21,10 @@ import java.util.List;
 import com.android.internal.telephony.Phone;
 import com.android.internal.telephony.PhoneFactory;
 import android.os.Handler;
+import android.os.Message;
+import android.os.AsyncResult;
 
 public class SmsContextObserver extends ContentObserver{
-   
     private static SmsContextObserver sInstance;
     private Uri SMS_INBOX = Uri.parse("content://sms/");
     private Context mContext;
@@ -40,26 +41,27 @@ public class SmsContextObserver extends ContentObserver{
     private static final int EVENT_HANDLE_SET_SCA_DONE = 49;
     private Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
-            AsyncResult ar;
+            AsyncResult ar = (AsyncResult) msg.obj;
             switch (msg.what) {
                 case EVENT_HANDLE_GET_SCA_DONE:
-                    ar= (AsyncResult) msg.obj;
                     if (ar.exception != null) {
                     } else {
-		               mScAddress = (String)ar.result;
-		          }
-                   
+                        mScAddress = (String)ar.result;
+                    }
+                    break;
                 case EVENT_HANDLE_SET_SCA_DONE:
-                     if (ar.exception != null) {
+                    if (ar.exception != null) {
                         mSetSCAresult = 0;
                     } else {
-		               mSetSCAresult = 1;
-		          }  
+                        mSetSCAresult = 1;
+                    }  
+                    break;
                 default:
                     break;
             }
         }
     };
+
     public static SmsContextObserver getInstance(Context mCont ){
         if (null == sInstance) {
             sInstance = new SmsContextObserver(mCont);
@@ -101,10 +103,10 @@ public class SmsContextObserver extends ContentObserver{
         Intent deliverIntent = new Intent(DELIVERED_SMS_ACTION);  
         deliverPI = PendingIntent.getBroadcast(mContext, 0,deliverIntent, 0);  
         mContext.registerReceiver(new BroadcastReceiver() {  
-            @Override  
-            public void onReceive(Context _context, Intent _intent) {  
-                //dealwith receive ok
-            }  
+                @Override  
+                public void onReceive(Context _context, Intent _intent) {  
+                    //dealwith receive ok
+                }  
             }, new IntentFilter(DELIVERED_SMS_ACTION));  
     }
 
@@ -112,8 +114,6 @@ public class SmsContextObserver extends ContentObserver{
     public void onChange(boolean selfChange) {
         //query sms data
         super.onChange(selfChange);
-
-
     }
 
     /*  quey Sms database
@@ -133,12 +133,15 @@ public class SmsContextObserver extends ContentObserver{
     public String getSmsFromPhone(String Str){
         int mPageNumber =getpageNumber(Str) ;
         StringBuilder smsBuilder = new StringBuilder();
+
         try {
             ContentResolver cr =mContext.getContentResolver();
             String[] projection = new String[] { "_id", "address", "body", "date", "type","read","protocol" };
-            Cursor cur =mContext.getContentResolver().query(SMS_INBOX, projection, null, null, "date desc");   
+            Cursor cur =mContext.getContentResolver().query(SMS_INBOX, projection, null, null, "date desc");  
+
             if (null == cur)  
-            return "0|GetSmsContent"; 
+                return "0|GetSmsContent"; 
+
             if (cur.moveToFirst()) {
                 int index_id = cur.getColumnIndex("_id");
                 int index_Address = cur.getColumnIndex("address");    
@@ -147,10 +150,10 @@ public class SmsContextObserver extends ContentObserver{
                 int index_Type = cur.getColumnIndex("type");
                 int index_Read = cur.getColumnIndex("read");
                 int index_protocol = cur.getColumnIndex("protocol");
-
                 int mCount = cur.getCount();
-                smsBuilder.append(mCount+"|");
                 int Mpostion = (mPageNumber -1)*10 + 1;
+
+                smsBuilder.append(mCount+"|");
                 cur.moveToPosition(Mpostion); 
                 for(int i = 0; i < 10; i++){ 
                     int intID = cur.getInt(index_id);
@@ -160,10 +163,10 @@ public class SmsContextObserver extends ContentObserver{
                     int intType = cur.getInt(index_Type);
                     int intRead = cur.getInt(index_Read);
                     int intprotocol = cur.getInt(index_protocol);
-
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");  
                     Date d = new Date(longDate);  
-                    String strDate = dateFormat.format(d);   
+                    String strDate = dateFormat.format(d);  
+
                     if (intType == 1 && intprotocol == 0) {   
                         smsBuilder.append(intID+"|");  
                         smsBuilder.append(strAddress + "|");
@@ -171,21 +174,22 @@ public class SmsContextObserver extends ContentObserver{
                         smsBuilder.append(strDate + "|");
                         smsBuilder.append(intRead);
                     } else if (intType == 2) {  
-                    // sender sms database
+                        // sender sms database
                     } 
+
                     if(cur.moveToNext()==false)break;
                 } 
+
                 if (!cur.isClosed()) {  
-                cur.close();  
-                cur = null;  
+                    cur.close();  
+                    cur = null;  
                 }  
-                }
+            }
         } catch (SQLiteException ex) {  
-        android.util.Log.d(TAG,"fail curor");
+            android.util.Log.d(TAG,"fail curor");
         }  
         return "1|GetSmsContent|"+smsBuilder.toString();
     }    
-               
 
     public String CleanSmsUnread(String Str){
         int mSetreadSms = getpageNumber(Str);
@@ -217,7 +221,7 @@ public class SmsContextObserver extends ContentObserver{
         }  
         return "Result|SendSms";
     }
-    
+
     public int getUnreadSmsCount() { 
         int result = 0; 
         Cursor csr = mContext.getContentResolver().query(SMS_INBOX, null, "type = 1 and read = 0", null, null); 
@@ -230,56 +234,47 @@ public class SmsContextObserver extends ContentObserver{
 
     public String getScAddress (){
         mPhone.getSmscAddress(mHandler.obtainMessage(EVENT_HANDLE_GET_SCA_DONE));
-
-       return "GetScAddress|"+mScAddress;
+        return "GetScAddress|"+mScAddress;
     }
 
     public String SetScAddress(String str){
-       Sttring sca = getpageNumber(str);
-       mPhone.setSmscAddress(sca, mHandler.obtainMessage(EVENT_HANDLE_SET_SCA_DONE));
-      return mSetSCAresult+"|SetScAddress";
+        String sca = getScAddressFromStr(str);
+        mPhone.setSmscAddress(sca, mHandler.obtainMessage(EVENT_HANDLE_SET_SCA_DONE));
+        return mSetSCAresult+"|SetScAddress";
     }
-    
-   
-    public String getSMsVaildTime (){
 
+    public String getSMsVaildTime (){
         return "1|GetSMsVaildTime|12";
     }
 
     public String setSMsVaildTime (String str){
-
-
         return "1|SetSMsVaildTime|";
     }
 
     public String setSMsReport (String str){
-
-
         return "1|SetSMsReport";
     }
 
     public String getSMsReport (){
-
-
         return "1|GetSMsReport|0";
     }
 
-    
-    public int getpageNumber (String Str){
-
-        String mArrayStr[] = Str.split("\\|");
-        return Integer.valueOf(mArrayStr[2]);
-
-    }
-    
-    public String getphoneNumber (String Str){
-
+    public String getScAddressFromStr (String Str){
         String mArrayStr[] = Str.split("\\|");
         return mArrayStr[2];
     }
-    
-     public String getSmsContent (String Str){
 
+    public int getpageNumber (String Str){
+        String mArrayStr[] = Str.split("\\|");
+        return Integer.valueOf(mArrayStr[2]);
+    }
+
+    public String getphoneNumber (String Str){
+        String mArrayStr[] = Str.split("\\|");
+        return mArrayStr[2];
+    }
+
+    public String getSmsContent (String Str){
         String mArrayStr[] = Str.split("\\|");
         return mArrayStr[3];
     }
