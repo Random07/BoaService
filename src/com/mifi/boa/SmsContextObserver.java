@@ -18,6 +18,9 @@ import android.app.PendingIntent;
 import android.app.Activity;
 import android.content.IntentFilter;
 import java.util.List;
+import com.android.internal.telephony.Phone;
+import com.android.internal.telephony.PhoneFactory;
+import android.os.Handler;
 
 public class SmsContextObserver extends ContentObserver{
    
@@ -30,6 +33,33 @@ public class SmsContextObserver extends ContentObserver{
     private String DELIVERED_SMS_ACTION = "DELIVERED_SMS_ACTION";
     private PendingIntent sentPI;
     private PendingIntent deliverPI;
+    private Phone mPhone = null;
+    private String mScAddress;
+    private int mSetSCAresult = -1;
+    private static final int EVENT_HANDLE_GET_SCA_DONE = 47;
+    private static final int EVENT_HANDLE_SET_SCA_DONE = 49;
+    private Handler mHandler = new Handler() {
+        public void handleMessage(Message msg) {
+            AsyncResult ar;
+            switch (msg.what) {
+                case EVENT_HANDLE_GET_SCA_DONE:
+                    ar= (AsyncResult) msg.obj;
+                    if (ar.exception != null) {
+                    } else {
+		               mScAddress = (String)ar.result;
+		          }
+                   
+                case EVENT_HANDLE_SET_SCA_DONE:
+                     if (ar.exception != null) {
+                        mSetSCAresult = 0;
+                    } else {
+		               mSetSCAresult = 1;
+		          }  
+                default:
+                    break;
+            }
+        }
+    };
     public static SmsContextObserver getInstance(Context mCont ){
         if (null == sInstance) {
             sInstance = new SmsContextObserver(mCont);
@@ -42,6 +72,8 @@ public class SmsContextObserver extends ContentObserver{
         mContext = mCont;
         telephonyManager = TelephonyManager.from(mContext);
         initBroadReceiver();
+        mPhone = PhoneFactory.getDefaultPhone();
+        mPhone.getSmscAddress(mHandler.obtainMessage(EVENT_HANDLE_GET_SCA_DONE)); 
     }
 
     public void initBroadReceiver(){
@@ -120,7 +152,7 @@ public class SmsContextObserver extends ContentObserver{
                 smsBuilder.append(mCount+"|");
                 int Mpostion = (mPageNumber -1)*10 + 1;
                 cur.moveToPosition(Mpostion); 
-                for(int i = 0; i < 10; i++, cur.moveToNext()){ 
+                for(int i = 0; i < 10; i++){ 
                     int intID = cur.getInt(index_id);
                     String strAddress = cur.getString(index_Address);   
                     String strbody = cur.getString(index_Body);  
@@ -178,7 +210,6 @@ public class SmsContextObserver extends ContentObserver{
     public String SendSms(String Str){
         String phoneNumber = getphoneNumber(Str);
         String message = getSmsContent(Str);
-        String mScAddress =  telephonyManager.getScAddress();
         SmsManager smsManager = SmsManager.getDefault();  
         List<String> divideContents = smsManager.divideMessage(message);   
         for (String text : divideContents) {    
@@ -198,13 +229,18 @@ public class SmsContextObserver extends ContentObserver{
     } 
 
     public String getScAddress (){
-       String mScAddr = telephonyManager.getScAddress();
-        if(mScAddr == null){
-           return "0|GetScAddress";
-        }
-        
-        return "1|GetScAddress|"+mScAddr;
+        mPhone.getSmscAddress(mHandler.obtainMessage(EVENT_HANDLE_GET_SCA_DONE));
+
+       return "GetScAddress|"+mScAddress;
     }
+
+    public String SetScAddress(String str){
+       Sttring sca = getpageNumber(str);
+       mPhone.setSmscAddress(sca, mHandler.obtainMessage(EVENT_HANDLE_SET_SCA_DONE));
+      return mSetSCAresult+"|SetScAddress";
+    }
+    
+   
     public String getSMsVaildTime (){
 
         return "1|GetSMsVaildTime|12";
