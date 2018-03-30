@@ -209,7 +209,7 @@ public class SmsContextObserver extends ContentObserver{
         intent.putExtra("data",Str);
         intent.putExtra("mScAddress",mScAddress);
         mContext.sendBroadcast(intent);
-        return "Result|SendSms";
+        return "0|SendSms";
     }
 
     public int getUnreadSmsCount() { 

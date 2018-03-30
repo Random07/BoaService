@@ -88,7 +88,7 @@ public class WiFiSettings {
         WifiConfiguration mWifiConfig = getWifiApConfig(mSSID,mHidSSID,mSecurityType,mPasw,mMaxCl);
         boolean mConfigResultboolean = mWifiManager.setWifiApConfiguration(mWifiConfig);
         String mConfigResult = mConfigResultboolean == true ? "1" : "0";
-        
+        startWifiAp();
         return mConfigResult;
     }
 

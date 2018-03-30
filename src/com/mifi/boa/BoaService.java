@@ -234,6 +234,9 @@ public class BoaService extends Service {
                         case "GetScAddress":
                            mFlushString = mSmsContextObserver.getScAddress();
                         break;
+                        case "SetScAddress":
+                           mFlushString = mSmsContextObserver.SetScAddress(string);
+                        break;
                         case "SetSMsVaildTime":
                            mFlushString = mSmsContextObserver.setSMsVaildTime(string);
                         break;
