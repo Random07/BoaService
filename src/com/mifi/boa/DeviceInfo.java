@@ -43,6 +43,7 @@ public class DeviceInfo {
         telephonyManager = TelephonyManager.from(mContext);
         mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
         mMyPhoneStateListener = new MyPhoneStateListener();
+        telephonyManager.listen(mMyPhoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
     }
 
     public String getDeviceInfo(){
@@ -97,8 +98,8 @@ public class DeviceInfo {
        int mPercent = battMgr.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
        int networkType = telephonyManager.getNetworkType();
        String mSpn = telephonyManager.getSimOperatorName();
-       //int mRsrp = mMyPhoneStateListener.getSignalStrength();
-       int mRsrp =telephonyManager.getSignalStrength().getLevel();
+       int mRsrp = mMyPhoneStateListener.getSignalStrength();
+       //int mRsrp =telephonyManager.getSignalStrength().getLevel();
        int mMaxConnect = System.getInt(mContext.getContentResolver(),WIFI_HOTSPOT_MAX_CLIENT_NUM,5);
        int mUnreadSms =mSmsContextObserver.getUnreadSmsCount();
         
@@ -131,6 +132,7 @@ public class DeviceInfo {
             // TODO Auto-generated method stub  
             super.onSignalStrengthsChanged(signalStrength);
             mRsrp = signalStrength.getLevel();
+            android.util.Log.d("testtest","mRsrp = "+mRsrp);
         }
 
         private int getSignalStrength(){
