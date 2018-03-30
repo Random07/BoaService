@@ -9,20 +9,18 @@ import android.database.sqlite.SQLiteException;
 import java.sql.Date;  
 import java.text.SimpleDateFormat;
 import android.content.ContentValues;
-import android.telephony.SmsManager;
 import android.telephony.TelephonyManager;
 import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
-import android.app.PendingIntent;
 import android.app.Activity;
 import android.content.IntentFilter;
-import java.util.List;
+import android.content.Intent;
 import com.android.internal.telephony.Phone;
 import com.android.internal.telephony.PhoneFactory;
 import android.os.Handler;
 import android.os.Message;
 import android.os.AsyncResult;
+import android.telephony.SmsManager;
+
 
 public class SmsContextObserver extends ContentObserver{
     private static SmsContextObserver sInstance;
@@ -30,15 +28,13 @@ public class SmsContextObserver extends ContentObserver{
     private Context mContext;
     static final String TAG = "BoaService";
     private TelephonyManager telephonyManager;
-    private String SENT_SMS_ACTION = "SENT_SMS_ACTION";
-    private String DELIVERED_SMS_ACTION = "DELIVERED_SMS_ACTION";
-    private PendingIntent sentPI;
-    private PendingIntent deliverPI;
     private Phone mPhone = null;
     private String mScAddress;
     private int mSetSCAresult = -1;
     private static final int EVENT_HANDLE_GET_SCA_DONE = 47;
     private static final int EVENT_HANDLE_SET_SCA_DONE = 49;
+    private String SENT_SMS_ACTION = "SENT_SMS_ACTION";
+    private String DELIVERED_SMS_ACTION = "DELIVERED_SMS_ACTION";
     private Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
             AsyncResult ar = (AsyncResult) msg.obj;
@@ -78,16 +74,14 @@ public class SmsContextObserver extends ContentObserver{
         mPhone.getSmscAddress(mHandler.obtainMessage(EVENT_HANDLE_GET_SCA_DONE)); 
     }
 
-    public void initBroadReceiver(){
+     public void initBroadReceiver(){
         //dealwith send intent
-        Intent sentIntent = new Intent(SENT_SMS_ACTION);  
-        sentPI = PendingIntent.getBroadcast(mContext, 0, sentIntent,0);
         mContext.registerReceiver(new BroadcastReceiver() {  
-        @Override  
+            @Override  
             public void onReceive(Context _context, Intent _intent) {  
                 switch (getResultCode()) {  
                     case Activity.RESULT_OK:  
-                     // deal send ok
+                        // deal send ok
                     break;  
                     case SmsManager.RESULT_ERROR_GENERIC_FAILURE:  
                     break;  
@@ -99,15 +93,13 @@ public class SmsContextObserver extends ContentObserver{
             }  
         }, new IntentFilter(SENT_SMS_ACTION));
 
-        //dealwith deilverIntent      
-        Intent deliverIntent = new Intent(DELIVERED_SMS_ACTION);  
-        deliverPI = PendingIntent.getBroadcast(mContext, 0,deliverIntent, 0);  
+        //dealwith deilverIntent 
         mContext.registerReceiver(new BroadcastReceiver() {  
-                @Override  
-                public void onReceive(Context _context, Intent _intent) {  
-                    //dealwith receive ok
-                }  
-            }, new IntentFilter(DELIVERED_SMS_ACTION));  
+            @Override  
+            public void onReceive(Context _context, Intent _intent) {  
+                //dealwith receive ok
+            }  
+        }, new IntentFilter(DELIVERED_SMS_ACTION));  
     }
 
     @Override
@@ -212,13 +204,11 @@ public class SmsContextObserver extends ContentObserver{
     }
 
     public String SendSms(String Str){
-        String phoneNumber = getphoneNumber(Str);
-        String message = getSmsContent(Str);
-        SmsManager smsManager = SmsManager.getDefault();  
-        List<String> divideContents = smsManager.divideMessage(message);   
-        for (String text : divideContents) {    
-            smsManager.sendTextMessage(phoneNumber, mScAddress, text, sentPI, deliverPI);    
-        }  
+        Intent intent = new Intent();
+        intent.setAction("BoaService.Send.SMS");
+        intent.putExtra("data",Str);
+        intent.putExtra("mScAddress",mScAddress);
+        mContext.sendBroadcast(intent);
         return "Result|SendSms";
     }
 
@@ -269,13 +259,4 @@ public class SmsContextObserver extends ContentObserver{
         return Integer.valueOf(mArrayStr[2]);
     }
 
-    public String getphoneNumber (String Str){
-        String mArrayStr[] = Str.split("\\|");
-        return mArrayStr[2];
-    }
-
-    public String getSmsContent (String Str){
-        String mArrayStr[] = Str.split("\\|");
-        return mArrayStr[3];
-    }
 }
