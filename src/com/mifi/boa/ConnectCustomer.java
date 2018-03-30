@@ -13,6 +13,7 @@ public class ConnectCustomer {
     private static ConnectCustomer sInstance;
     private BufferedReader br;
     private String connectedIp = "";
+    private int connectNumber = 0;
      static final String TAG = "BoaService";
 
     public static ConnectCustomer getInstance(){
@@ -85,7 +86,7 @@ public class ConnectCustomer {
             e.printStackTrace();  
           } 
              
-           return "1|"+"Connect_Customer"+connectedIp;
+           return "1|"+"Connect_Customer|"+connectNumber+"|"+connectedIp;
      }
 
     public class CustomerThread extends Thread {
@@ -95,6 +96,7 @@ public class ConnectCustomer {
         try {
             br=new BufferedReader(new FileReader("/proc/net/arp"));
             connectedIp = "";
+            int connectNumber = 0;
             String line;
             while ((line=br.readLine())!=null){
                 String[] splitted=line.split(" +");
@@ -104,6 +106,7 @@ public class ConnectCustomer {
                         boolean isReachable = InetAddress.getByName(splitted[0]).isReachable(500);
                         android.util.Log.d("BoaService","customName"+splitted[0]);
                         if(isReachable){
+                            connectNumber++; 
                             connectedIp +=("|"+splitted[0]+"|"+splitted[3]+"|"+splitted[5]);
                         }
                     }

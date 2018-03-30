@@ -20,6 +20,8 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.AsyncResult;
 import android.telephony.SmsManager;
+import android.telephony.SmsParameters;
+
 
 
 public class SmsContextObserver extends ContentObserver{
@@ -234,11 +236,19 @@ public class SmsContextObserver extends ContentObserver{
     }
 
     public String getSMsVaildTime (){
-        return "1|GetSMsVaildTime|12";
+         SmsManager smsManager = SmsManager.getDefault();
+         int time = smsManager.getSmsParameters().vp;
+        return "1|GetSMsVaildTime|"+time;
     }
 
     public String setSMsVaildTime (String str){
-        return "1|SetSMsVaildTime|";
+         SmsManager smsManager = SmsManager.getDefault();
+         SmsParameters mSmsParameters = smsManager.getSmsParameters();
+         int time = getpageNumber(str);
+         mSmsParameters.vp = time ;
+         boolean result = smsManager.setSmsParameters(mSmsParameters);
+         int resuultint = result ? 1 : 0 ; 
+        return resuultint+"|SetSMsVaildTime";
     }
 
     public String setSMsReport (String str){
