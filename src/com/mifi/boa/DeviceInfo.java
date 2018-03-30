@@ -97,7 +97,8 @@ public class DeviceInfo {
        int mPercent = battMgr.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
        int networkType = telephonyManager.getNetworkType();
        String mSpn = telephonyManager.getSimOperatorName();
-       int mRsrp = mMyPhoneStateListener.getSignalStrength();
+       //int mRsrp = mMyPhoneStateListener.getSignalStrength();
+       int mRsrp =telephonyManager.getSignalStrength().getLevel();
        int mMaxConnect = System.getInt(mContext.getContentResolver(),WIFI_HOTSPOT_MAX_CLIENT_NUM,5);
        int mUnreadSms =mSmsContextObserver.getUnreadSmsCount();
         
