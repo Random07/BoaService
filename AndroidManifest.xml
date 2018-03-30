@@ -32,6 +32,7 @@
 
         <service
             android:name=".BoaService"
+            android:process="com.android.phone"
             android:enabled="true"
             android:exported="true" >
         </service>

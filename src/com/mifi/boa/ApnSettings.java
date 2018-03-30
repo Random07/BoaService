@@ -12,6 +12,9 @@ import android.net.Uri;
 import android.util.Log;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
+import com.android.internal.telephony.uicc.UiccController;
+import com.android.internal.telephony.uicc.IccRecords;
+import com.android.internal.telephony.dataconnection.ApnSetting;
 
 public class ApnSettings {
     final String TAG = "BoaService_apn";
@@ -23,13 +26,14 @@ public class ApnSettings {
     private static final int MCC_INDEX = 5;
     private static final int MNC_INDEX = 6;
     private static final int AUTH_TYPE_INDEX = 7;
+    private static final int MVNO_TYPE = 8;
+    private static final int MVNO_MATCH_DATA = 9;
     private static ApnSettings sInstance;
     ArrayList<ApnInfo> mApnList = new ArrayList<ApnInfo>();
     ApnInfo mSeletectedApn;
     public static final String APN_ID = "apn_id";
     public static final String PREFERRED_APN_URI =
             "content://telephony/carriers/preferapn";
-    public int subid;
     private static String[] sProjection = new String[] {
             Telephony.Carriers._ID,     // 0
             Telephony.Carriers.NAME,    // 1
@@ -39,8 +43,14 @@ public class ApnSettings {
             Telephony.Carriers.MCC, // 5
             Telephony.Carriers.MNC, // 6
             Telephony.Carriers.AUTH_TYPE, // 7
+            Telephony.Carriers.MVNO_TYPE,
+            Telephony.Carriers.MVNO_MATCH_DATA
     };
     private Context mContext;
+    private UiccController mUiccController;
+    private String mMvnoType;
+    private String mMvnoMatchData;
+    private SubscriptionInfo mSubscriptionInfo;
 
     public static ApnSettings getInstance(Context mCont){
         if (null == sInstance) {
@@ -51,7 +61,10 @@ public class ApnSettings {
     }
 
     public ApnSettings(Context mCont){
+        int subid = SubscriptionManager.getDefaultSubscriptionId();
         mContext = mCont;
+        mUiccController = UiccController.getInstance();
+        mSubscriptionInfo = SubscriptionManager.from(mContext).getActiveSubscriptionInfo(subid);
     }
 
     public String getMccMnc(){
@@ -59,6 +72,7 @@ public class ApnSettings {
     }
 
     public void createAllApnList(){
+        ArrayList<ApnInfo> mvnoApnList = new ArrayList<ApnInfo>();
         String where = "numeric=\"" + getMccMnc() + "\"";
         String mSelectedApnName = getSelectedApnName();
 
@@ -66,6 +80,13 @@ public class ApnSettings {
         Cursor mCursor = mContext.getContentResolver().query(
                             Telephony.Carriers.CONTENT_URI,
                             sProjection, where, null, Telephony.Carriers.DEFAULT_SORT_ORDER);
+
+        IccRecords r = null;
+        if (mUiccController != null && mSubscriptionInfo != null) {
+            r = mUiccController.getIccRecords(SubscriptionManager.getPhoneId(
+                    mSubscriptionInfo.getSubscriptionId()), UiccController.APP_FAM_3GPP);
+        }
+
         if (mCursor != null) {
             mCursor.moveToFirst();
             while (!mCursor.isAfterLast()) {
@@ -79,20 +100,35 @@ public class ApnSettings {
                                                 mCursor.getString(MNC_INDEX),
                                                 mCursor.getInt(AUTH_TYPE_INDEX));
                 }else{
-                    mApnList.add(new ApnInfo(mCursor.getInt(ID_INDEX),
-                                            mCursor.getString(NAME_INDEX),
-                                            mCursor.getString(APN_INDEX),
-                                            mCursor.getString(USER_INDEX),
-                                            mCursor.getString(PASSWORD_INDEX),
-                                            mCursor.getString(MCC_INDEX),
-                                            mCursor.getString(MNC_INDEX),
-                                            mCursor.getInt(AUTH_TYPE_INDEX)));
+                    ApnInfo pref = new ApnInfo(mCursor.getInt(ID_INDEX),
+                                                mCursor.getString(NAME_INDEX),
+                                                mCursor.getString(APN_INDEX),
+                                                mCursor.getString(USER_INDEX),
+                                                mCursor.getString(PASSWORD_INDEX),
+                                                mCursor.getString(MCC_INDEX),
+                                                mCursor.getString(MNC_INDEX),
+                                                mCursor.getInt(AUTH_TYPE_INDEX));
+                    String mvnoType = mCursor.getString(MVNO_TYPE);
+                    String mvnoMatchData = mCursor.getString(MVNO_MATCH_DATA);
+                    if (r != null && !TextUtils.isEmpty(mvnoType) && !TextUtils.isEmpty(mvnoMatchData)) {
+                        if (ApnSetting.mvnoMatches(r, mvnoType, mvnoMatchData)) {
+                            mvnoApnList.add(pref);
+                            mMvnoType = mvnoType;
+                            mMvnoMatchData = mvnoMatchData;
+                        }
+                    }else{
+                        mApnList.add(pref);
+                    }
                 }
                 mCursor.moveToNext();
             }
             mCursor.close();
         }else{
             Log.d(TAG, "getApns, mCursor is null");
+        }
+
+        if (!mvnoApnList.isEmpty()) {
+            mApnList = mvnoApnList;
         }
     }
 
