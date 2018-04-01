@@ -127,6 +127,7 @@ public class SmsContextObserver extends ContentObserver{
     public String getSmsFromPhone(String Str){
         int mPageNumber =getpageNumber(Str) ;
         StringBuilder smsBuilder = new StringBuilder();
+        int mCount = 0;
 
         try {
             ContentResolver cr =mContext.getContentResolver();
@@ -144,10 +145,8 @@ public class SmsContextObserver extends ContentObserver{
                 int index_Type = cur.getColumnIndex("type");
                 int index_Read = cur.getColumnIndex("read");
                 int index_protocol = cur.getColumnIndex("protocol");
-                int mCount = cur.getCount();
-                int Mpostion = (mPageNumber -1)*10 + 1;
+                int Mpostion = (mPageNumber -1)*10 + 0;
 
-                smsBuilder.append(mCount+"|");
                 cur.moveToPosition(Mpostion); 
                 for(int i = 0; i < 10; i++){ 
                     int intID = cur.getInt(index_id);
@@ -161,7 +160,9 @@ public class SmsContextObserver extends ContentObserver{
                     Date d = new Date(longDate);  
                     String strDate = dateFormat.format(d);  
 
-                    if (intType == 1 && intprotocol == 0) {   
+                    if (intType == 1 && intprotocol == 0) {
+                        mCount++;
+                        smsBuilder.append("|");
                         smsBuilder.append(intID+"|");  
                         smsBuilder.append(strAddress + "|");
                         smsBuilder.append(strbody + "|");  
@@ -182,7 +183,7 @@ public class SmsContextObserver extends ContentObserver{
         } catch (SQLiteException ex) {  
             android.util.Log.d(TAG,"fail curor");
         }  
-        return "1|GetSmsContent|"+smsBuilder.toString();
+        return "1|GetSmsContent|"+mCount+smsBuilder.toString();
     }    
 
     public String CleanSmsUnread(String Str){
