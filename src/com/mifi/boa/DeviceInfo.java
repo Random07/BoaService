@@ -55,12 +55,12 @@ public class DeviceInfo {
         int mMaxConnect = System.getInt(mContext.getContentResolver(),WIFI_HOTSPOT_MAX_CLIENT_NUM,5);
         String mIpAddress = getIpAddresses();
         String mMacAddress = getMacAddress();
-        String mWanIpAddress = SystemProperties.get("net.wimax.mac.address", "Unavailable");;
-        String mSwVersion = "Android 7.0";
-        String mFirmwareVersion = "Not Know";
-        String mHwVersion ="Not Know";
+        //String mWanIpAddress = SystemProperties.get("net.wimax.mac.address", "Unavailable");;
+        //String mSwVersion = "Android 7.0";
+        String mFirmwareVersion = "1.1";
+        String mHwVersion ="1.0";
 		
-        return "1|"+"DeviceInfo|"+mSimNumber+"|"+mDeviceIMEI+"|"+imsi+"|"+mSSID+"|"+mMaxConnect+"|"+mWanIpAddress+"|"+mSwVersion+"|"+mFirmwareVersion+"|"+mHwVersion;
+        return "1|"+"DeviceInfo|"+mSimNumber+"|"+mDeviceIMEI+"|"+imsi+"|"+mSSID+"|"+mMaxConnect+"|"+mIpAddress+"|"+mMacAddress+"|"+mFirmwareVersion+"|"+mHwVersion;
     }
 
     private String getIpAddresses() {
