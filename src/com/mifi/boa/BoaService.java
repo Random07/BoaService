@@ -63,7 +63,7 @@ public class BoaService extends Service {
          if (mSmsContextObserver != null) {
             getContentResolver().registerContentObserver(Uri.parse("content://sms/"), true, mSmsContextObserver);
         }
-        //mWiFiSettings.startWifiAp();
+        mWiFiSettings.startWifiAp();
         mWiFiSettings.ConfigWifiAp("Lichuan",false,2,"12345678",6);
         new ServerListener().start();		
         return START_STICKY;
