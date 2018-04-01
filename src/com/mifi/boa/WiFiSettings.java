@@ -11,6 +11,9 @@ import android.net.wifi.WifiConfiguration.AuthAlgorithm;
 import android.os.Handler;
 import android.net.wifi.WpsInfo;
 import android.text.TextUtils;
+import android.content.IntentFilter;
+import android.content.BroadcastReceiver;
+import android.content.Intent;
 
 public class WiFiSettings {
     private static WiFiSettings sInstance;
@@ -29,6 +32,8 @@ public class WiFiSettings {
     private int mSecurityType;
     private String mPassWord;
     private int mMaxClientNum;
+    private boolean mRestartWifiApAfterConfigChange = false;
+    private TetherChangeReceiver mTetherChangeReceiver;
 
     public static WiFiSettings getInstance(Context mCont){
         if (null == sInstance) {
@@ -41,6 +46,10 @@ public class WiFiSettings {
         mContext = mCont;
         mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
         mCm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        mTetherChangeReceiver = new TetherChangeReceiver();
+        IntentFilter filter = new IntentFilter(ConnectivityManager.ACTION_TETHER_STATE_CHANGED);
+        filter.addAction(WifiManager.WIFI_AP_STATE_CHANGED_ACTION);
+        mContext.registerReceiver(mTetherChangeReceiver, filter);
     }
     
     public String getWiFiInfo(){
@@ -83,12 +92,12 @@ public class WiFiSettings {
     public String ConfigWifiAp(String mSSID ,boolean mHidSSID ,int mSecurityType,String  mPasw,int mMaxCl ) {
         if (mWifiManager.getWifiApState() == WifiManager.WIFI_AP_STATE_ENABLED) {
             android.util.Log.d(TAG,"Wifi AP config changed while enabled, stop and restart");
+             mRestartWifiApAfterConfigChange = true;
             mCm.stopTethering(TETHERING_WIFI);
         }
         WifiConfiguration mWifiConfig = getWifiApConfig(mSSID,mHidSSID,mSecurityType,mPasw,mMaxCl);
         boolean mConfigResultboolean = mWifiManager.setWifiApConfiguration(mWifiConfig);
         String mConfigResult = mConfigResultboolean ? "1" : "0";
-        startWifiAp();
         return mConfigResult;
     }
 
@@ -150,6 +159,29 @@ public class WiFiSettings {
             return "1|SetWPSConnectMode";
         }else{
             return "0|SetWPSConnectMode";
+        }
+    }
+
+    private class TetherChangeReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context content, Intent intent) {
+            String action = intent.getAction();
+            android.util.Log.d(TAG,"TetherChangeReceiver action"+action);
+            if (action.equals(ConnectivityManager.ACTION_TETHER_STATE_CHANGED)) {
+                if (mWifiManager.getWifiApState() == WifiManager.WIFI_AP_STATE_DISABLED&& mRestartWifiApAfterConfigChange) {
+                    mRestartWifiApAfterConfigChange = false;
+                    android.util.Log.d(TAG,"Restarting WifiAp due to prior config change.");
+                    startWifiAp();
+                }
+            } else if (action.equals(WifiManager.WIFI_AP_STATE_CHANGED_ACTION)) {
+                int state = intent.getIntExtra(WifiManager.EXTRA_WIFI_AP_STATE, 0);
+                if (state == WifiManager.WIFI_AP_STATE_DISABLED && mRestartWifiApAfterConfigChange) {
+                    mRestartWifiApAfterConfigChange = false;
+                    android.util.Log.d(TAG,"Restarting WifiAp due to prior config change");
+                    startWifiAp();
+                }
+            }
+
         }
     }
 
