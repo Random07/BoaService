@@ -79,6 +79,6 @@ public class Account {
     public String SetLanguage(String data){
         String[] mData = data.split("\\|");
         SystemProperties.set(MIFI_LANGUAGE,mData[2]);
-        return "1|GetLanguage";
+        return "1|SetLanguage";
     }
 }

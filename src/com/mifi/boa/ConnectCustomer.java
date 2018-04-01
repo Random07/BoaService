@@ -14,7 +14,7 @@ public class ConnectCustomer {
     private BufferedReader br;
     private String connectedIp = "";
     private int connectNumber = 0;
-     static final String TAG = "BoaService";
+    static final String TAG = "BoaService";
 
     public static ConnectCustomer getInstance(){
         if (null == sInstance) {
@@ -96,7 +96,7 @@ public class ConnectCustomer {
         try {
             br=new BufferedReader(new FileReader("/proc/net/arp"));
             connectedIp = "";
-            int connectNumber = 0;
+            connectNumber = 0;
             String line;
             while ((line=br.readLine())!=null){
                 String[] splitted=line.split(" +");

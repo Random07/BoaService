@@ -106,16 +106,13 @@ public class DeviceInfo {
        return "1|Common"+"|"+mMaxConnect+"|"+mUnreadSms+"|"+mPercent+"|"+networkType+"|"+mSpn+"|"+mRsrp;
     }
 
-    public void setDataClose(){
-        telephonyManager.setDataEnabled(false);
+    public void setDataEnabled(String data){
+        String[] mData = data.split("\\|");
+        int enable = Integer.parseInt(mData[2]);
+        telephonyManager.setDataEnabled((enable == 1)?true:false);
     }
 
     public String setReFactory(){
-        /*Intent intent = new Intent(Intent.ACTION_FACTORY_RESET);
-        intent.setPackage("android");
-        intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
-        intent.putExtra(Intent.EXTRA_REASON, "CryptKeeper.MAX_FAILED_ATTEMPTS");
-        mContext.sendBroadcast(intent);*/
         Intent intent = new Intent(Intent.ACTION_MASTER_CLEAR);
         intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
         intent.putExtra(Intent.EXTRA_REASON, "MasterClearConfirm");

@@ -210,11 +210,11 @@ public class BoaService extends Service {
                         case "Common":
                             mFlushString = mDeviceInfo.getCommon();
                         break;
-                        case "CloseData":
-                            mDeviceInfo.setDataClose();
+                        case "setDataEnabled":
+                            mDeviceInfo.setDataEnabled(string);
                         break;
                         case "GetLanguage":
-                           mFlushString =mAccount.getLanguage();
+                           mFlushString = mAccount.getLanguage();
                         break;
                         case "SetLanguage":
                            mFlushString = mAccount.SetLanguage(string);
@@ -257,10 +257,11 @@ public class BoaService extends Service {
                         break;
                     }
                     android.util.Log.d(TAG,mFlushString+"sendMessage");
-                    if(!TextUtils.isEmpty(mFlushString)){
-                        bufWrite.write(mFlushString+"\r\n\r\n");
-                        bufWrite.flush(); 
+                    if(TextUtils.isEmpty(mFlushString)){
+                        mFlushString = 1 + "|" + mAction;
                     }
+                    bufWrite.write(mFlushString+"\r\n\r\n");
+                    bufWrite.flush();
                 }
                 bufWrite.close();
                 br.close();
