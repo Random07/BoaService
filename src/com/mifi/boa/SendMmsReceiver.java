@@ -21,10 +21,19 @@ public class SendMmsReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        initPendingIntent(context);
-        String mscAdd = intent.getStringExtra("mScAddress");
-        String data=intent.getStringExtra("data");
-        SendSms(mscAdd,data);
+        
+        String action = intent.getAction();
+		android.util.Log.d(TAG,"onReceive"+action);
+		if (action.equals("android.intent.action.BOOT_COMPLETED")){
+			Intent startIntent = new Intent(context, BoaService.class);
+			 startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			context.startService(startIntent);
+		}else if (action.equals("BoaService.Send.SMS")){
+			initPendingIntent(context);
+			String mscAdd = intent.getStringExtra("mScAddress");
+			String data=intent.getStringExtra("data");
+			SendSms(mscAdd,data);
+		}
     }
 
     public void SendSms(String mScAddress,String data){

@@ -20,23 +20,31 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.AsyncResult;
 import android.telephony.SmsManager;
+import android.telephony.SmsMessage;
 import android.telephony.SmsParameters;
+import java.util.ArrayList;
+import android.os.SystemProperties;
+
+
 
 
 
 public class SmsContextObserver extends ContentObserver{
     private static SmsContextObserver sInstance;
     private Uri SMS_INBOX = Uri.parse("content://sms/");
+	private Uri SMS_ICC = Uri.parse("content://sms/icc");
     private Context mContext;
-    static final String TAG = "BoaService";
+    static final String TAG = "BoaService_SmsContextObserver";
     private TelephonyManager telephonyManager;
     private Phone mPhone = null;
     private String mScAddress;
-    private int mSetSCAresult = -1;
+    private boolean mSetSCAresult = false;
     private static final int EVENT_HANDLE_GET_SCA_DONE = 47;
     private static final int EVENT_HANDLE_SET_SCA_DONE = 49;
     private String SENT_SMS_ACTION = "SENT_SMS_ACTION";
     private String DELIVERED_SMS_ACTION = "DELIVERED_SMS_ACTION";
+	private StringBuilder smsICCBuilder=new StringBuilder();
+	final String Sms_Report = "persist.sys.sms.report";
     private Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
             AsyncResult ar = (AsyncResult) msg.obj;
@@ -49,9 +57,9 @@ public class SmsContextObserver extends ContentObserver{
                     break;
                 case EVENT_HANDLE_SET_SCA_DONE:
                     if (ar.exception != null) {
-                        mSetSCAresult = 0;
+                        mSetSCAresult = false;
                     } else {
-                        mSetSCAresult = 1;
+                        mSetSCAresult = true;
                     }  
                     break;
                 default:
@@ -108,6 +116,9 @@ public class SmsContextObserver extends ContentObserver{
     public void onChange(boolean selfChange) {
         //query sms data
         super.onChange(selfChange);
+		android.util.Log.d(TAG,"onChange icc");
+		ReadSmsThread mReadSmsThread = new ReadSmsThread();
+		mReadSmsThread.start();
     }
 
     /*  quey Sms database
@@ -225,18 +236,29 @@ public class SmsContextObserver extends ContentObserver{
         return result; 
     } 
 
-    public String getScAddress (){
+    public String getSmsSettings (){
         mPhone.getSmscAddress(mHandler.obtainMessage(EVENT_HANDLE_GET_SCA_DONE));
-        return "GetScAddress|"+mScAddress;
+		 SmsManager smsManager = SmsManager.getDefault();
+         int time = smsManager.getSmsParameters().vp;
+		 String report = SystemProperties.get(Sms_Report,"0");
+        return "0|GetSmsSettings|"+time+"|"+mScAddress+"|"+report;
     }
 
-    public String SetScAddress(String str){
+    public String setSmsSettings(String str){
         String sca = getScAddressFromStr(str);
         mPhone.setSmscAddress(sca, mHandler.obtainMessage(EVENT_HANDLE_SET_SCA_DONE));
-        return mSetSCAresult+"|SetScAddress";
+		SmsManager smsManager = SmsManager.getDefault();
+        SmsParameters mSmsParameters = smsManager.getSmsParameters();
+        int time = getSmstime(str);
+        mSmsParameters.vp = time ;
+        boolean resulttime = smsManager.setSmsParameters(mSmsParameters);
+		String mSmsreport = getSmsReprot(str);
+		SystemProperties.set(Sms_Report,mSmsreport);
+		int result = resulttime == mSetSCAresult ? 1 : 0;
+        return result+"|SetSmsSettings";
     }
 
-    public String getSMsVaildTime (){
+    /*public String getSMsVaildTime (){
          SmsManager smsManager = SmsManager.getDefault();
          int time = smsManager.getSmsParameters().vp;
         return "1|GetSMsVaildTime|"+time;
@@ -250,24 +272,60 @@ public class SmsContextObserver extends ContentObserver{
          boolean result = smsManager.setSmsParameters(mSmsParameters);
          int resuultint = result ? 1 : 0 ; 
         return resuultint+"|SetSMsVaildTime";
-    }
+    }*/
 
-    public String setSMsReport (String str){
-        return "1|SetSMsReport";
-    }
 
-    public String getSMsReport (){
-        return "1|GetSMsReport|0";
-    }
+	public String getScAddressFromStr (String Str){
+		String mArrayStr[] = Str.split("\\|");
+		return mArrayStr[3];
+	}
+	public int getSmstime (String Str){
+		String mArrayStr[] = Str.split("\\|");
+		return Integer.valueOf(mArrayStr[2]);
+	}
+	public String getSmsReprot (String Str){
+		String mArrayStr[] = Str.split("\\|");
+		return mArrayStr[4];
+	}
 
-    public String getScAddressFromStr (String Str){
-        String mArrayStr[] = Str.split("\\|");
-        return mArrayStr[2];
-    }
+	public int getpageNumber (String Str){
+		String mArrayStr[] = Str.split("\\|");
+		return Integer.valueOf(mArrayStr[2]);
+	}
 
-    public int getpageNumber (String Str){
-        String mArrayStr[] = Str.split("\\|");
-        return Integer.valueOf(mArrayStr[2]);
-    }
+	public String getSmsFromSIM(){
+		
+		return "1|"+"smsICCBuilder|"+smsICCBuilder.toString();
+     }
+
+	public class ReadSmsThread extends Thread {
+
+		@Override  
+		public void run(){  
+			SmsManager smsManager = SmsManager.getDefault();
+			ArrayList<SmsMessage> messages= smsManager.getAllMessagesFromIcc();
+			android.util.Log.d(TAG,"ArrayList<SmsMessage>");
+			final int count = messages.size();
+			android.util.Log.d(TAG,"count ="+count);
+			for (int i = 0; i < count; i++) {
+				SmsMessage message = messages.get(i);
+				if (message != null) {
+					android.util.Log.d(TAG,"i ="+i);
+					String bodydisply = message.getDisplayMessageBody();
+					String body= message.getMessageBody();
+					String dislayaddr= message.getDisplayOriginatingAddress();
+					String addr= message.getOriginatingAddress();
+					long time = message.getTimestampMillis();
+					smsICCBuilder.append("|");
+					smsICCBuilder.append(bodydisply+"|");
+					smsICCBuilder.append(body+"|");
+					smsICCBuilder.append(dislayaddr+"|");
+					smsICCBuilder.append(addr+"|");
+					smsICCBuilder.append(time+"|");
+				}
+			}
+		}
+
+	}
 
 }

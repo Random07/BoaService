@@ -61,10 +61,12 @@ public class BoaService extends Service {
         mContext.registerReceiver(mBoaReceiver,new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
             }
          if (mSmsContextObserver != null) {
-            getContentResolver().registerContentObserver(Uri.parse("content://sms/"), true, mSmsContextObserver);
+            getContentResolver().registerContentObserver(Uri.parse("content://sms/icc"), true, mSmsContextObserver);
         }
         mWiFiSettings.startWifiAp();
         mWiFiSettings.ConfigWifiAp("Lichuan",false,2,"12345678",6);
+		String sms= mSmsContextObserver.getSmsFromSIM();
+		android.util.Log.d(TAG,"Service start"+sms);
         new ServerListener().start();		
         return START_STICKY;
     }
@@ -231,23 +233,11 @@ public class BoaService extends Service {
                         case "SendSms":
                            mFlushString = mSmsContextObserver.SendSms(string); 
                         break;
-                        case "GetScAddress":
-                           mFlushString = mSmsContextObserver.getScAddress();
+                        case "GetSmsSettings":
+                           mFlushString = mSmsContextObserver.getSmsSettings();
                         break;
-                        case "SetScAddress":
-                           mFlushString = mSmsContextObserver.SetScAddress(string);
-                        break;
-                        case "SetSMsVaildTime":
-                           mFlushString = mSmsContextObserver.setSMsVaildTime(string);
-                        break;
-                        case "GetSMsVaildTime":
-                           mFlushString = mSmsContextObserver.getSMsVaildTime();
-                        break;
-                        case "SetSMsReport":
-                           mFlushString = mSmsContextObserver.setSMsReport(string);
-                        break;
-                        case "GetSMsReport":
-                           mFlushString = mSmsContextObserver.getSMsReport();
+                        case "SetSmsSettings":
+                           mFlushString = mSmsContextObserver.setSmsSettings(string);
                         break;
                         case "SetWPSConnectMode":
                             mFlushString = mWiFiSettings.setWPSConnectMode(string);
