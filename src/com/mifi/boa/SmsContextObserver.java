@@ -81,7 +81,9 @@ public class SmsContextObserver extends ContentObserver{
         telephonyManager = TelephonyManager.from(mContext);
         initBroadReceiver();
         mPhone = PhoneFactory.getDefaultPhone();
-        mPhone.getSmscAddress(mHandler.obtainMessage(EVENT_HANDLE_GET_SCA_DONE)); 
+        mPhone.getSmscAddress(mHandler.obtainMessage(EVENT_HANDLE_GET_SCA_DONE));
+		ReadSimSmsThread mReadSimSms = new ReadSimSmsThread();
+		mReadSimSms.start();
     }
 
      public void initBroadReceiver(){
@@ -117,8 +119,8 @@ public class SmsContextObserver extends ContentObserver{
         //query sms data
         super.onChange(selfChange);
 		android.util.Log.d(TAG,"onChange icc");
-		ReadSmsThread mReadSmsThread = new ReadSmsThread();
-		mReadSmsThread.start();
+		ReadSimSmsThread mReadSimSms = new ReadSimSmsThread();
+		mReadSimSms.start();
     }
 
     /*  quey Sms database
@@ -295,10 +297,10 @@ public class SmsContextObserver extends ContentObserver{
 
 	public String getSmsFromSIM(){
 		
-		return "1|"+"smsICCBuilder|"+smsICCBuilder.toString();
+		return "1|"+"smsICCBuilder"+smsICCBuilder.toString();
      }
 
-	public class ReadSmsThread extends Thread {
+	public class ReadSimSmsThread extends Thread {
 
 		@Override  
 		public void run(){  
