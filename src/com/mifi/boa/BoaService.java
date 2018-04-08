@@ -258,7 +258,7 @@ public class BoaService extends Service {
                     }
                     android.util.Log.d(TAG,mFlushString+"sendMessage");
                     if(TextUtils.isEmpty(mFlushString)){
-                        mFlushString = 1 + "|" + mAction;
+                        mFlushString = 0 + "|" + mAction;
                     }
                     bufWrite.write(mFlushString+"\r\n\r\n");
                     bufWrite.flush();

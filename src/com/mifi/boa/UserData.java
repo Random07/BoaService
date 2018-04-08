@@ -4,31 +4,21 @@ import android.content.Context;
 import android.telephony.SubscriptionManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.net.NetworkPolicyManager;
-import com.android.settingslib.NetworkPolicyEditor;
-import com.android.settingslib.net.DataUsageController;
-import android.net.NetworkTemplate;
-import android.telephony.TelephonyManager;
-import android.text.format.Formatter;
-import android.telephony.SubscriptionInfo;
-import java.util.List;
-import android.text.format.Time;
-import android.text.TextUtils;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.BroadcastReceiver;
+import com.android.internal.telephony.RILConstants;
 
 public class UserData {
     final String TAG = "BoaService_UserData";
-    public static final long KB_IN_BYTES = 1000;
-    public static final long MB_IN_BYTES = KB_IN_BYTES * 1000;
-    public static final long GB_IN_BYTES = MB_IN_BYTES * 1000;
-    private static final long MAX_DATA_LIMIT_BYTES = 50000 * GB_IN_BYTES;
+    static final int preferredNetworkMode = RILConstants.PREFERRED_NETWORK_MODE;
     private static UserData sInstance;
     private Context mContext;
-    NetworkPolicyManager mPolicyManager;
-    NetworkPolicyEditor mPolicyEditor;
     int subid;
     TelephonyManager tm;
-    NetworkTemplate mTemplate;
-    SubscriptionManager mSPM;
+    private UserDataConfirmReceiver mUserDataConfirmReceiver;
+    String mUserDataResult;
+    IntentFilter intentFilter;
 
     public static UserData getInstance(Context mCont){
         if (null == sInstance) {
@@ -40,9 +30,11 @@ public class UserData {
     public UserData (Context mCont) {
         mContext = mCont;
         tm = TelephonyManager.from(mContext);
-        mSPM = SubscriptionManager.from(mContext);
-        mPolicyManager = NetworkPolicyManager.from(mContext);
-        mPolicyEditor = new NetworkPolicyEditor(mPolicyManager);
+        mUserDataConfirmReceiver = new UserDataConfirmReceiver();
+        intentFilter = new IntentFilter();
+        intentFilter.addAction("com.mifi.boa.confirm.DataStatic");
+        intentFilter.addAction("com.mifi.boa.confirm.DataLimit");
+        mContext.registerReceiver(mUserDataConfirmReceiver, intentFilter);
     }
 
     public void updateSubId(){
@@ -56,101 +48,41 @@ public class UserData {
         Log.d(TAG, "updateSubId subid = " + subid);
     }
 
-    public void getNetworkTemplate(){
-        mTemplate = null;
-        updateSubId();
-        if(SubscriptionManager.isValidSubscriptionId(subid)){
-            mTemplate = getNetworkTemplate(subid);
-        }else{
-            Log.d(TAG, "subid is invalid");
-        }
-    }
-
-    public NetworkTemplate getNetworkTemplate(int subscriptionId) {
-        NetworkTemplate mobileAll = NetworkTemplate.buildTemplateMobileAll(
-                tm.getSubscriberId(subscriptionId));
-        Log.d(TAG, "getNetworkTemplate with subID: " + subscriptionId);
-        return NetworkTemplate.normalize(mobileAll,
-                tm.getMergedSubscriberIds());
-    }
-
     public String setDataLimit(String data){
-        String[] mData = data.split("\\|");
-
-        if(mData.length < 3 || TextUtils.isEmpty(mData[2])){
-            Log.d(TAG, "data error, data is " + data);
-            return "0|DataLimit";
-        }
-
-        if(!mData[2].matches("[0-9]+")){
-            Log.d(TAG, "data error, data is " + data);
-            return "0|DataLimit";
-        }
-
-        long bytes = Long.parseLong(mData[2]);
-        long correctedBytes = Math.min(MAX_DATA_LIMIT_BYTES, bytes);
-
-        getNetworkTemplate();
-        if(mTemplate != null){
-            mPolicyEditor.read();
-            if(1 != mPolicyEditor.getPolicyCycleDay(mTemplate)){
-                mPolicyEditor.setPolicyCycleDay(mTemplate,1,new Time().timezone);
+        mUserDataResult = "";
+        Intent intent = new Intent();
+        intent.setAction("com.mifi.boa.set.DataLimit");
+        intent.putExtra("data",data);
+        mContext.sendBroadcast(intent);
+        while("".equals(mUserDataResult)){
+            Log.d("xjhe", "setDataLimit, mUserDataResult = "+mUserDataResult);
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-            mPolicyEditor.setPolicyLimitBytes(mTemplate, correctedBytes);
-            return "1|DataLimit";
-        }else{
-            Log.d(TAG, "get network template fail,do not set data limit!");
-            return "0|DataLimit";
+            // Do nothing
         }
+        Log.d(TAG, "setDataLimit, mUserDataResult = "+mUserDataResult);
+        return mUserDataResult;
     }
 
-    public void setDataCycle(String data){
-        String[] mData = data.split("\\|");
-        int day = Integer.parseInt(mData[2]);
-        String cycleTimezone = new Time().timezone;
-
-        getNetworkTemplate();
-        if(mTemplate != null){
-            mPolicyEditor.read();
-            Log.d(TAG, "day = "+day+"; cycleTimezone = " + cycleTimezone);
-            mPolicyEditor.setPolicyCycleDay(mTemplate,day,cycleTimezone);
-        }else{
-            Log.d(TAG, "get network template fail,do not set data cycle!");
-        }
-    }
-
-    public int getDataCycle(){
-        int day = -1;
-
-        getNetworkTemplate();
-        if(mTemplate != null){
-            mPolicyEditor.read();
-            day = mPolicyEditor.getPolicyCycleDay(mTemplate);
-        }else{
-            Log.d(TAG, "get network template fail,do not set data cycle!");
-        }
-
-        return day;
-    }
     public String getDataStatic(){
-        DataUsageController controller = new DataUsageController(mContext);
-        String mStr = "1|DataStatic|";
-
-        getNetworkTemplate();
-        if(mTemplate != null){
-            DataUsageController.DataUsageInfo usageInfo = controller.getDataUsageInfo(mTemplate);
-            mPolicyEditor.read();
-            if(1 != mPolicyEditor.getPolicyCycleDay(mTemplate)){
-                mPolicyEditor.setPolicyCycleDay(mTemplate,1,new Time().timezone);
+        mUserDataResult = "";
+        Intent intent = new Intent();
+        intent.setAction("com.mifi.boa.get.DataStatic");
+        mContext.sendBroadcast(intent);
+        while("".equals(mUserDataResult)){
+            Log.d("xjhe", "getDataStatic, mUserDataResult = "+mUserDataResult);
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-            long mLimit = mPolicyEditor.getPolicyLimitBytes(mTemplate);
-            mStr += usageInfo.usageLevel+"|"+mLimit;
-        }else{
-            mStr = "0|DataStatic";
-            Log.d(TAG, "get network template fail,so used data and limit data is null!");
+            // Do nothing
         }
-
-        return mStr;
+        Log.d(TAG, "getDataStatic, mUserDataResult = "+mUserDataResult);
+        return mUserDataResult;
     }
 
     public String  setNetworkType(String data){
@@ -158,6 +90,9 @@ public class UserData {
 
         updateSubId();
         if(tm.setPreferredNetworkType(subid, Integer.parseInt(mData[2]))){
+            android.provider.Settings.Global.putInt(mContext.getContentResolver(),
+                        android.provider.Settings.Global.PREFERRED_NETWORK_MODE + subid,
+                        Integer.parseInt(mData[2]));
             return ("1|SetNetworkType");
         }else{
             return ("0|SetNetworkType");
@@ -167,11 +102,32 @@ public class UserData {
     public String getNetworkType(){
         int mNetworkType = -1;
         updateSubId();
-        mNetworkType = tm.getPreferredNetworkType(subid);
+        //mNetworkType = tm.getPreferredNetworkType(subid);
+
+        mNetworkType = android.provider.Settings.Global.getInt(mContext.
+                    getContentResolver(),
+                    android.provider.Settings.Global.PREFERRED_NETWORK_MODE + subid,
+                    preferredNetworkMode);
+
         if(-1 == mNetworkType){
             return ("0|GetNetworkType");
         }else{
             return ("1|GetNetworkType|" + String.valueOf(mNetworkType));
+        }
+    }
+
+    private class UserDataConfirmReceiver extends BroadcastReceiver {
+        private boolean listeningToManagedProfileEvents;
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            Log.v(TAG, "Received broadcast: " + action);
+            if (action.equals("com.mifi.boa.confirm.DataLimit")
+                    || action.equals("com.mifi.boa.confirm.DataStatic")) {
+                mUserDataResult = intent.getStringExtra("data");
+                Log.d(TAG, "confirm data = " + mUserDataResult);
+            }
         }
     }
 }

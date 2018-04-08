@@ -28,6 +28,7 @@ public class ApnSettings {
     private static final int AUTH_TYPE_INDEX = 7;
     private static final int MVNO_TYPE = 8;
     private static final int MVNO_MATCH_DATA = 9;
+    private static final int APN_TYPE = 10;
     private static ApnSettings sInstance;
     ArrayList<ApnInfo> mApnList = new ArrayList<ApnInfo>();
     ApnInfo mSeletectedApn;
@@ -43,8 +44,9 @@ public class ApnSettings {
             Telephony.Carriers.MCC, // 5
             Telephony.Carriers.MNC, // 6
             Telephony.Carriers.AUTH_TYPE, // 7
-            Telephony.Carriers.MVNO_TYPE,
-            Telephony.Carriers.MVNO_MATCH_DATA
+            Telephony.Carriers.MVNO_TYPE, // 8
+            Telephony.Carriers.MVNO_MATCH_DATA, // 9
+            Telephony.Carriers.TYPE
     };
     private Context mContext;
     private UiccController mUiccController;
@@ -110,14 +112,20 @@ public class ApnSettings {
                                                 mCursor.getInt(AUTH_TYPE_INDEX));
                     String mvnoType = mCursor.getString(MVNO_TYPE);
                     String mvnoMatchData = mCursor.getString(MVNO_MATCH_DATA);
-                    if (r != null && !TextUtils.isEmpty(mvnoType) && !TextUtils.isEmpty(mvnoMatchData)) {
-                        if (ApnSetting.mvnoMatches(r, mvnoType, mvnoMatchData)) {
-                            mvnoApnList.add(pref);
-                            mMvnoType = mvnoType;
-                            mMvnoMatchData = mvnoMatchData;
+                    String type = mCursor.getString(APN_TYPE);
+                    boolean selectable = ((type == null) || (!type.equals("mms")
+                        && !type.equals("ia") && !type.equals("ims")&& !type.equals("emergency")));
+                    Log.d(TAG, "getApns, selectable is " + selectable);
+                    if(selectable){
+                        if (r != null && !TextUtils.isEmpty(mvnoType) && !TextUtils.isEmpty(mvnoMatchData)) {
+                            if (ApnSetting.mvnoMatches(r, mvnoType, mvnoMatchData)) {
+                                mvnoApnList.add(pref);
+                                mMvnoType = mvnoType;
+                                mMvnoMatchData = mvnoMatchData;
+                            }
+                        }else{
+                            mApnList.add(pref);
                         }
-                    }else{
-                        mApnList.add(pref);
                     }
                 }
                 mCursor.moveToNext();

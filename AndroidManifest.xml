@@ -43,5 +43,12 @@
              </intent-filter>
        </receiver>
 
+       <receiver android:name=".UserDataReceiver">
+            <intent-filter>
+                <action android:name="com.mifi.boa.set.DataLimit"/>
+                <action android:name="com.mifi.boa.get.DataStatic"/>
+            </intent-filter>
+       </receiver>
+
     </application>
 </manifest>
