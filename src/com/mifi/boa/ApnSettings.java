@@ -203,10 +203,10 @@ public class ApnSettings {
         ContentResolver resolver = mContext.getContentResolver();
         ContentValues values = new ContentValues();
         String[] mData = data.split("\\|");
-        String mApnId = "";
+        String mApnId = mData[2];
 
-        createAllApnList();
-        mApnId = convertApnToApnId(mData[2]);
+        //createAllApnList();
+        //mApnId = convertApnToApnId(mData[2]);
         Log.d(TAG, "APN_ID = " + mApnId);
         if(!TextUtils.isEmpty(mApnId)){
             int subid = SubscriptionManager.getDefaultSubscriptionId();

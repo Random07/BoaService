@@ -40,7 +40,7 @@ public class ApnInfo {
     }
 
     public String toString(){
-    	return (mName + "|" + mApn + "|" +mMcc
+        return (mIndex + "|" + mName + "|" + mApn + "|" +mMcc
     			+ "|" +mMnc + "|" +mAuthTypeIndex
     			+ "|" +mUserName + "|" +mPassword);
     }
