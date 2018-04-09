@@ -24,6 +24,7 @@ public class WiFiSettings {
     private OnStartTetheringCallback mStartTetheringCallback;
     static final String TAG = "WiFiSettings";
     public static final String WIFI_HOTSPOT_MAX_CLIENT_NUM = "wifi_hotspot_max_client_num";
+    public static final String WIFI_HOTSPOT_AUTO_DISABLE = "wifi_hotspot_auto_disable";
     public static final int OPEN_INDEX = 0;
     public static final int WPA_INDEX = 1;
     public static final int WPA2_INDEX = 2;
@@ -46,6 +47,7 @@ public class WiFiSettings {
         mContext = mCont;
         mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
         mCm = (ConnectivityManager) mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
+        System.putInt(mContext.getContentResolver(),WIFI_HOTSPOT_AUTO_DISABLE,0);
         mTetherChangeReceiver = new TetherChangeReceiver();
         IntentFilter filter = new IntentFilter(ConnectivityManager.ACTION_TETHER_STATE_CHANGED);
         filter.addAction(WifiManager.WIFI_AP_STATE_CHANGED_ACTION);

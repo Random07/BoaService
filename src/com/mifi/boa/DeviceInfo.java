@@ -21,6 +21,7 @@ public class DeviceInfo {
     private static DeviceInfo sInstance;
 	private Context mContext;
     public static final String WIFI_HOTSPOT_MAX_CLIENT_NUM = "wifi_hotspot_max_client_num";
+    final String MIFI_LANGUAGE = "persist.sys.user.language";
     private ConnectivityManager mCM;
     private TelephonyManager telephonyManager;
     private WifiManager mWifiManager;
@@ -102,10 +103,14 @@ public class DeviceInfo {
        //int mRsrp =telephonyManager.getSignalStrength().getLevel();
        int mMaxConnect = System.getInt(mContext.getContentResolver(),WIFI_HOTSPOT_MAX_CLIENT_NUM,5);
        int mUnreadSms =mSmsContextObserver.getUnreadSmsCount();
-        
-       return "1|Common"+"|"+mMaxConnect+"|"+mUnreadSms+"|"+mPercent+"|"+networkType+"|"+mSpn+"|"+mRsrp;
+       String mLanguage = SystemProperties.get(MIFI_LANGUAGE,"1");
+       return "1|Common"+"|"+mMaxConnect+"|"+mUnreadSms+"|"+mPercent+"|"+networkType+"|"+mSpn+"|"+mRsrp+"|"+mLanguage;
     }
-
+    public String SetLanguage(String data){
+        String[] mData = data.split("\\|");
+        SystemProperties.set(MIFI_LANGUAGE,mData[2]);
+        return "1|SetLanguage";
+    }
     public void setDataEnabled(String data){
         String[] mData = data.split("\\|");
         int enable = Integer.parseInt(mData[2]);

@@ -9,7 +9,6 @@ public class Account {
     final String TAG = "BoaService_Account";
     final String MIFI_USERNAME = "persist.sys.user.name";
     final String MIFI_PASSWORD = "persist.sys.user.password";
-    final String MIFI_LANGUAGE = "persist.sys.user.language";
     final long MIFI_END_TIME = 1527782400000L;
     private static Account sInstance;
     private Context mContext;
@@ -71,14 +70,6 @@ public class Account {
             return ("0|SetAccountInfo");
         }
     }
- 
-    public String getLanguage(){
-        return ("1|GetLanguage|" + SystemProperties.get(MIFI_LANGUAGE,"1"));
-    }
 
-    public String SetLanguage(String data){
-        String[] mData = data.split("\\|");
-        SystemProperties.set(MIFI_LANGUAGE,mData[2]);
-        return "1|SetLanguage";
-    }
+    
 }

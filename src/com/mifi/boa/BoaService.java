@@ -215,20 +215,23 @@ public class BoaService extends Service {
                         case "setDataEnabled":
                             mDeviceInfo.setDataEnabled(string);
                         break;
-                        case "GetLanguage":
-                           mFlushString = mAccount.getLanguage();
-                        break;
                         case "SetLanguage":
-                           mFlushString = mAccount.SetLanguage(string);
+                           mFlushString = mDeviceInfo.SetLanguage(string);
                         break;
                         case "GetSmsContent":
                            mFlushString = mSmsContextObserver.getSmsFromPhone(string);
                         break;
-                        case "CleanSmsUnread":
-                           mFlushString = mSmsContextObserver.CleanSmsUnread(string); 
+                        case "GetOneSmsAndClean":
+                           mFlushString = mSmsContextObserver.getOneSmsAndClean(string); 
                         break;
                         case "DeleteSms":
-                           mFlushString = mSmsContextObserver.DeleteSmsFromPhone(string); 
+                           mFlushString = mSmsContextObserver.DeleteSmsFromPhone(string);
+                        break;
+                        case "GetSIMSms":
+                            mFlushString = mSmsContextObserver.getSmsFromSIM();
+                        break;
+                        case "GetOneSIMSms":
+                            mFlushString = mSmsContextObserver.getOneSmsFromSIM(string);
                         break;
                         case "SendSms":
                            mFlushString = mSmsContextObserver.SendSms(string); 
