@@ -24,7 +24,6 @@ import android.telephony.SmsMessage;
 import android.telephony.SmsParameters;
 import java.util.ArrayList;
 import android.os.SystemProperties;
-import java.util.HashMap;
 
 
 
@@ -43,8 +42,7 @@ public class SmsContextObserver extends ContentObserver{
     private String SENT_SMS_ACTION = "SENT_SMS_ACTION";
     private String DELIVERED_SMS_ACTION = "DELIVERED_SMS_ACTION";
 	final String Sms_Report = "persist.sys.sms.report";
-    private StringBuilder mCutSIMSmsBuilder = new StringBuilder();
-    private HashMap SimSmsMap  = new HashMap<Integer,String>();
+    private ArrayList<SmsMessage> messages;
     private Handler mHandler = new Handler() {
         public void handleMessage(Message msg) {
             AsyncResult ar = (AsyncResult) msg.obj;
@@ -82,6 +80,8 @@ public class SmsContextObserver extends ContentObserver{
         initBroadReceiver();
         mPhone = PhoneFactory.getDefaultPhone();
         mPhone.getSmscAddress(mHandler.obtainMessage(EVENT_HANDLE_GET_SCA_DONE));
+        ReadSimSmsThread mReadSimSms = new ReadSimSmsThread();
+        mReadSimSms.start();
     }
 
      public void initBroadReceiver(){
@@ -129,8 +129,8 @@ public class SmsContextObserver extends ContentObserver{
         //query sms data
         super.onChange(selfChange);
 		android.util.Log.d(TAG,"onChange icc");
-        ReadSimSmsThread mReadSimSms = new ReadSimSmsThread();
-        mReadSimSms.start();
+        //ReadSimSmsThread mReadSimSms = new ReadSimSmsThread();
+        //mReadSimSms.start();
     }
 
     /*  quey Sms database
@@ -150,6 +150,7 @@ public class SmsContextObserver extends ContentObserver{
     public String getSmsFromPhone(String Str){
         int mPageNumber =getpageNumber(Str) ;
         StringBuilder smsBuilder = new StringBuilder();
+        int mSmsReceiveTotal = getReceiveSms();
         int mCount = 0;
 
         try {
@@ -207,7 +208,7 @@ public class SmsContextObserver extends ContentObserver{
         } catch (SQLiteException ex) {  
             android.util.Log.d(TAG,"fail curor");
         }  
-        return "1|GetSmsContent|"+mCount+smsBuilder.toString();
+        return "1|GetSmsContent|"+mSmsReceiveTotal+"|"+mCount+smsBuilder.toString();
     }    
 
     public String getOneSmsAndClean(String Str){
@@ -296,6 +297,16 @@ public class SmsContextObserver extends ContentObserver{
         return result; 
     } 
 
+    public int getReceiveSms() { 
+        int result = 0; 
+        Cursor csr = mContext.getContentResolver().query(SMS_INBOX, null, "type = 1", null, null); 
+        if (csr != null) { 
+            result = csr.getCount(); 
+            csr.close(); 
+        } 
+        return result; 
+    } 
+
     public String getSmsSettings (){
         mPhone.getSmscAddress(mHandler.obtainMessage(EVENT_HANDLE_GET_SCA_DONE));
 		 SmsManager smsManager = SmsManager.getDefault();
@@ -353,17 +364,59 @@ public class SmsContextObserver extends ContentObserver{
 		return Integer.valueOf(mArrayStr[2]);
 	}
 
-	public String getSmsFromSIM(){ 
-		return "1"+"GetSIMSms"+mCutSIMSmsBuilder.toString();
+	public String getSmsFromSIM(String str){
+        int pagenumber = getpageNumber(str);
+        int pagecount = pagenumber*10;
+        final int count = messages.size();
+        int  showSimcount = (pagenumber -1)*10 ;
+        StringBuilder mCutSIMSmsBuilder = new StringBuilder();
+        int oncecount = 0 ;
+        for (int i = 0; i < count; i++) {
+            SmsMessage message = messages.get(i);
+            if (message != null && showSimcount <= i && i < pagecount) {
+                android.util.Log.d(TAG,"i ="+i);
+                oncecount++;
+                String bodydisply = message.getDisplayMessageBody();
+                String dislayaddr= message.getDisplayOriginatingAddress();
+                long time = message.getTimestampMillis();
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");  
+                Date d = new Date(time);
+                String strDate = dateFormat.format(d);
+                String cutSmsbody = getCutBody(bodydisply,20);
+                mCutSIMSmsBuilder.append("|"); 
+                mCutSIMSmsBuilder.append(i+"|");  
+                mCutSIMSmsBuilder.append(dislayaddr + "|");
+                mCutSIMSmsBuilder.append(cutSmsbody+ "|");  
+                mCutSIMSmsBuilder.append(strDate);
+            }
+        }
+        int result = mCutSIMSmsBuilder==null ? 0 : 1;
+		return result+"|GetSIMSms|"+count+"|"+oncecount+mCutSIMSmsBuilder.toString();
      }
     public String getOneSmsFromSIM(String str){
         int key = getSimSmsID(str);
-        String SimSMSContent=null;
-        if(!SimSmsMap.isEmpty()){
-            SimSMSContent =(String)SimSmsMap.get(key);
+        StringBuilder mSIMSmsBuilder = new StringBuilder();
+        final int count = messages.size();
+        for (int i = 0; i < count; i++) {
+            SmsMessage message = messages.get(i);
+            if (message != null && i == key) {
+                android.util.Log.d(TAG,"i ="+i);
+                String bodydisply = message.getDisplayMessageBody();
+                String dislayaddr= message.getDisplayOriginatingAddress();
+                String addr= message.getOriginatingAddress();
+                long time = message.getTimestampMillis();
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");  
+                Date d = new Date(time);
+                String strDate = dateFormat.format(d);
+                mSIMSmsBuilder.append("|"); 
+                mSIMSmsBuilder.append(i+"|");  
+                mSIMSmsBuilder.append(dislayaddr + "|");
+                mSIMSmsBuilder.append(bodydisply+ "|");  
+                mSIMSmsBuilder.append(strDate);
+            }
         }
-        int result = SimSMSContent == null ? 0 : 1;
-    return result+"|GetOneSIMSms"+SimSMSContent;
+        int result = mSIMSmsBuilder==null ? 0 : 1;
+    return result+"|GetOneSIMSms"+mSIMSmsBuilder.toString();
     }
     
     public int getSimSmsID(String str){
@@ -377,31 +430,8 @@ public class SmsContextObserver extends ContentObserver{
 		@Override  
 		public void run(){
 			SmsManager smsManager = SmsManager.getDefault();
-			ArrayList<SmsMessage> messages= smsManager.getAllMessagesFromIcc();
+			messages= smsManager.getAllMessagesFromIcc();
 			android.util.Log.d(TAG,"ArrayList<SmsMessage>");
-			final int count = messages.size();
-			android.util.Log.d(TAG,"count ="+count);
-			for (int i = 0; i < count; i++) {
-				SmsMessage message = messages.get(i);
-				if (message != null) {
-					android.util.Log.d(TAG,"i ="+i);
-					String bodydisply = message.getDisplayMessageBody();
-					String body= message.getMessageBody();
-					String dislayaddr= message.getDisplayOriginatingAddress();
-					String addr= message.getOriginatingAddress();
-					long time = message.getTimestampMillis();
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");  
-                    Date d = new Date(time);
-                    String strDate = dateFormat.format(d);
-                    SimSmsMap.put(i,addr+"|"+body+"|"+strDate);
-                    String cutSmsbody = getCutBody(body,20);
-                    mCutSIMSmsBuilder.append("|"); 
-                    mCutSIMSmsBuilder.append(i+"|");  
-                    mCutSIMSmsBuilder.append(dislayaddr + "|");
-                    mCutSIMSmsBuilder.append(cutSmsbody+ "|");  
-                    mCutSIMSmsBuilder.append(strDate);
-				}
-			}
 		}
 
 	}

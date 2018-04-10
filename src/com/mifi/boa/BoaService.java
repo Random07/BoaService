@@ -65,8 +65,6 @@ public class BoaService extends Service {
         }
         mWiFiSettings.startWifiAp();
         mWiFiSettings.ConfigWifiAp("Lichuan",false,2,"12345678",6);
-		String sms= mSmsContextObserver.getSmsFromSIM();
-		android.util.Log.d(TAG,"Service start"+sms);
         new ServerListener().start();		
         return START_STICKY;
     }
@@ -228,7 +226,7 @@ public class BoaService extends Service {
                            mFlushString = mSmsContextObserver.DeleteSmsFromPhone(string);
                         break;
                         case "GetSIMSms":
-                            mFlushString = mSmsContextObserver.getSmsFromSIM();
+                            mFlushString = mSmsContextObserver.getSmsFromSIM(string);
                         break;
                         case "GetOneSIMSms":
                             mFlushString = mSmsContextObserver.getOneSmsFromSIM(string);
