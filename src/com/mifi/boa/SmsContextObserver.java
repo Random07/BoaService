@@ -189,7 +189,7 @@ public class SmsContextObserver extends ContentObserver{
                         smsBuilder.append("|");
                         smsBuilder.append(intID+"|");  
                         smsBuilder.append(strAddress + "|");
-                        String mCutBody = getCutBody(strbody,80);
+                        String mCutBody = getCutBody(strbody,60);
                         smsBuilder.append(mCutBody+ "|");  
                         smsBuilder.append(strDate + "|");
                         smsBuilder.append(intRead);
@@ -392,7 +392,7 @@ public class SmsContextObserver extends ContentObserver{
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");  
                 Date d = new Date(time);
                 String strDate = dateFormat.format(d);
-                String cutSmsbody = getCutBody(bodydisply,80);
+                String cutSmsbody = getCutBody(bodydisply,60);
                 mCutSIMSmsBuilder.append("|"); 
                 mCutSIMSmsBuilder.append(i+"|");  
                 mCutSIMSmsBuilder.append(dislayaddr + "|");
