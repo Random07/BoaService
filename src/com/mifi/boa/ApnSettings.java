@@ -161,12 +161,17 @@ public class ApnSettings {
 
         createAllApnList();
         mRet += getApnsNumbers();
-        mRet += "|";
-        mRet += mSeletectedApn.toString();
+
+        if(mSeletectedApn != null){
+            mRet += "|";
+            mRet += mSeletectedApn.toString();
+        }
+
         for(ApnInfo mApn:mApnList){
             mRet += "|";
             mRet += mApn.toString();
         }
+
         mApnList.clear();
         Log.d(TAG, "getApns = " + mRet);
 
