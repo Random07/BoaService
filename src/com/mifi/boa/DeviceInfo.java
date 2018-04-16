@@ -16,8 +16,13 @@ import android.telephony.SignalStrength;
 import android.telephony.PhoneStateListener;
 import android.content.Intent;
 import android.os.BatteryManager;
+import android.os.Handler;
+import android.os.Message;
 
 public class DeviceInfo {
+    private static final int MSG_SET_REBOOT = 1;
+    private static final int MSG_SET_REFACTORY = 2;
+    private static final long DELAY_MILLIS = 1000;
     private static DeviceInfo sInstance;
 	private Context mContext;
     public static final String WIFI_HOTSPOT_MAX_CLIENT_NUM = "wifi_hotspot_max_client_num";
@@ -28,6 +33,25 @@ public class DeviceInfo {
     private BoaReceiver mBoaReceiver;
     private MyPhoneStateListener mMyPhoneStateListener;
     private SmsContextObserver mSmsContextObserver;
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            android.util.Log.d("BoaService_DeviceInfo","message.what = "+msg.what);
+            switch (msg.what) {
+                case MSG_SET_REBOOT:
+                    PowerManager mPM = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
+                    mPM.reboot("");
+                    break;
+                case MSG_SET_REFACTORY:
+                    Intent intent = new Intent(Intent.ACTION_MASTER_CLEAR);
+                    intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
+                    intent.putExtra(Intent.EXTRA_REASON, "MasterClearConfirm");
+                    intent.putExtra(Intent.EXTRA_WIPE_EXTERNAL_STORAGE, true);
+                    mContext.sendBroadcast(intent);
+                    break;
+            }
+        }
+    };
 
     public static DeviceInfo getInstance(Context mCont,BoaReceiver mBoaReceiver,SmsContextObserver mSmsObserver){
         if (null == sInstance) {
@@ -88,8 +112,7 @@ public class DeviceInfo {
     }
 
     public String setReBoot(){
-		PowerManager mPM = (PowerManager)mContext.getSystemService(Context.POWER_SERVICE);
-        mPM.reboot("");
+        mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_SET_REBOOT), DELAY_MILLIS);
         return "1|ReBoot";
     }
 
@@ -118,11 +141,7 @@ public class DeviceInfo {
     }
 
     public String setReFactory(){
-        Intent intent = new Intent(Intent.ACTION_MASTER_CLEAR);
-        intent.addFlags(Intent.FLAG_RECEIVER_FOREGROUND);
-        intent.putExtra(Intent.EXTRA_REASON, "MasterClearConfirm");
-        intent.putExtra(Intent.EXTRA_WIPE_EXTERNAL_STORAGE, true);
-        mContext.sendBroadcast(intent);
+        mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_SET_REFACTORY), DELAY_MILLIS);
         return "1|ReFactory";
     }
 
