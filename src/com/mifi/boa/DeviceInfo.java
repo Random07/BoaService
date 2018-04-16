@@ -33,6 +33,7 @@ public class DeviceInfo {
     private BoaReceiver mBoaReceiver;
     private MyPhoneStateListener mMyPhoneStateListener;
     private SmsContextObserver mSmsContextObserver;
+    private ConnectCustomer mConnectCustomer;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -52,18 +53,32 @@ public class DeviceInfo {
             }
         }
     };
+    /** Data connection activity: No traffic. */
+    public static final int DATA_ACTIVITY_NONE = 0x00000000;
+    /** Data connection activity: Currently receiving IP PPP traffic. */
+    public static final int DATA_ACTIVITY_IN = 0x00000001;
+    /** Data connection activity: Currently sending IP PPP traffic. */
+    public static final int DATA_ACTIVITY_OUT = 0x00000002;
+    /** Data connection activity: Currently both sending and receiving
+     *  IP PPP traffic. */
+    public static final int DATA_ACTIVITY_INOUT = DATA_ACTIVITY_IN | DATA_ACTIVITY_OUT;
+    /**
+     * Data connection is active, but physical link is down
+     */
+    public static final int DATA_ACTIVITY_DORMANT = 0x00000004;
 
-    public static DeviceInfo getInstance(Context mCont,BoaReceiver mBoaReceiver,SmsContextObserver mSmsObserver){
+    public static DeviceInfo getInstance(Context mCont,BoaReceiver mBoaReceiver,SmsContextObserver mSmsObserver,ConnectCustomer mConnectCustomer){
         if (null == sInstance) {
-            sInstance = new DeviceInfo(mCont,mBoaReceiver,mSmsObserver);
+            sInstance = new DeviceInfo(mCont,mBoaReceiver,mSmsObserver,mConnectCustomer);
         }
         return sInstance;
     }
 	
-    private DeviceInfo(Context mCont,BoaReceiver mBoaSer,SmsContextObserver mSmsObserver){
+    private DeviceInfo(Context mCont,BoaReceiver mBoaSer,SmsContextObserver mSmsObserver,ConnectCustomer mCoutomer){
         mContext = mCont;
         mBoaReceiver = mBoaSer;
         mSmsContextObserver = mSmsObserver;
+        mConnectCustomer= mCoutomer;
         mCM = (ConnectivityManager)mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         telephonyManager = TelephonyManager.from(mContext);
         mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
@@ -124,10 +139,30 @@ public class DeviceInfo {
        String mSpn = telephonyManager.getSimOperatorName();
        int mRsrp = mMyPhoneStateListener.getSignalStrength();
        //int mRsrp =telephonyManager.getSignalStrength().getLevel();
-       int mMaxConnect = System.getInt(mContext.getContentResolver(),WIFI_HOTSPOT_MAX_CLIENT_NUM,5);
+       int mMaxConnect = mConnectCustomer.getconnectNumber();
        int mUnreadSms =mSmsContextObserver.getUnreadSmsCount();
        String mLanguage = SystemProperties.get(MIFI_LANGUAGE,"1");
-       return "1|Common"+"|"+mMaxConnect+"|"+mUnreadSms+"|"+mPercent+"|"+networkType+"|"+mSpn+"|"+mRsrp+"|"+mLanguage;
+       String mDataActivity = getDataString(telephonyManager.getDataActivity());
+       return "1|Common"+"|"+mMaxConnect+"|"+mUnreadSms+"|"+mPercent+"|"+networkType+"|"+mSpn+"|"+mRsrp+"|"+mLanguage+"|"+mDataActivity;
+    }
+
+     public String getDataString(int data){
+        if(!telephonyManager.getDataEnabled()) return "OFF";
+            // is not available.
+            switch (data) {
+                case DATA_ACTIVITY_NONE:
+                    return "NONE";
+                case  DATA_ACTIVITY_IN:
+                    return "UPLOAD";
+                case DATA_ACTIVITY_OUT:
+                    return "DOWNLOAD";
+                case DATA_ACTIVITY_INOUT:
+                    return "UPDOWNLOAD";
+                case  DATA_ACTIVITY_DORMANT:
+                    return "NONE";
+                default:
+                    return "unknow";
+            }
     }
     public String SetLanguage(String data){
         String[] mData = data.split("\\|");

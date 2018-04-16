@@ -64,7 +64,7 @@ public class BoaService extends Service {
             getContentResolver().registerContentObserver(Uri.parse("content://sms/icc"), true, mSmsContextObserver);
         }
         mWiFiSettings.startWifiAp();
-        mWiFiSettings.ConfigWifiAp("Lichuan",false,2,"12345678",6);
+        mWiFiSettings.ConfigWifiAp("4G_MIFI",false,2,"12345678",6);
         new ServerListener().start();		
         return START_STICKY;
     }
@@ -89,7 +89,7 @@ public class BoaService extends Service {
         mApnSettings = ApnSettings.getInstance(mContext);
         mWiFiSettings = WiFiSettings.getInstance(mContext);
         mSmsContextObserver = SmsContextObserver.getInstance(mContext);
-        mDeviceInfo = DeviceInfo.getInstance(mContext,mBoaReceiver,mSmsContextObserver);
+        mDeviceInfo = DeviceInfo.getInstance(mContext,mBoaReceiver,mSmsContextObserver,mConnectCustomer);
     }
 
     /**

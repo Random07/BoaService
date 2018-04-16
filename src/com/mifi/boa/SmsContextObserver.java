@@ -156,7 +156,7 @@ public class SmsContextObserver extends ContentObserver{
         try {
             ContentResolver cr =mContext.getContentResolver();
             String[] projection = new String[] { "_id", "address", "body", "date", "type","read","protocol" };
-            Cursor cur =mContext.getContentResolver().query(SMS_INBOX, projection, null, null, "date desc");  
+            Cursor cur =mContext.getContentResolver().query(SMS_INBOX, projection, "type = 1 and protocol = 0", null, "date desc");  
 
             if (null == cur)  
                 return "0|GetSmsContent"; 
@@ -166,9 +166,9 @@ public class SmsContextObserver extends ContentObserver{
                 int index_Address = cur.getColumnIndex("address");    
                 int index_Body = cur.getColumnIndex("body");  
                 int index_Date = cur.getColumnIndex("date");  
-                int index_Type = cur.getColumnIndex("type");
+                //int index_Type = cur.getColumnIndex("type");
                 int index_Read = cur.getColumnIndex("read");
-                int index_protocol = cur.getColumnIndex("protocol");
+                //int index_protocol = cur.getColumnIndex("protocol");
                 int Mpostion = (mPageNumber -1)*10 + 0;
 
                 cur.moveToPosition(Mpostion); 
@@ -177,25 +177,25 @@ public class SmsContextObserver extends ContentObserver{
                     String strAddress = cur.getString(index_Address);   
                     String strbody = cur.getString(index_Body);  
                     long longDate = cur.getLong(index_Date);  
-                    int intType = cur.getInt(index_Type);
+                   // int intType = cur.getInt(index_Type);
                     int intRead = cur.getInt(index_Read);
-                    int intprotocol = cur.getInt(index_protocol);
+                   // int intprotocol = cur.getInt(index_protocol);
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");  
                     Date d = new Date(longDate);  
                     String strDate = dateFormat.format(d);  
 
-                    if (intType == 1 && intprotocol == 0) {
+                   // if (intType == 1 && intprotocol == 0) {
                         mCount++;
                         smsBuilder.append("|");
                         smsBuilder.append(intID+"|");  
                         smsBuilder.append(strAddress + "|");
-                        String mCutBody = getCutBody(strbody,20);
+                        String mCutBody = getCutBody(strbody,80);
                         smsBuilder.append(mCutBody+ "|");  
                         smsBuilder.append(strDate + "|");
                         smsBuilder.append(intRead);
-                    } else if (intType == 2) {  
+                    //} else if (intType == 2) {  
                         // sender sms database
-                    } 
+                    //} 
 
                     if(cur.moveToNext()==false)break;
                 } 
@@ -243,13 +243,23 @@ public class SmsContextObserver extends ContentObserver{
     }
 
     public String DeleteSmsFromPhone(String Str){
-        int mDeleteid = getpageNumber(Str);
-        String where = "_id=" + mDeleteid;
+        String where = getWhere(Str);
+        android.util.Log.d(TAG,"getWhere"+where);
         ContentResolver cr = mContext.getContentResolver();
-        int result = cr.delete(SMS_INBOX, where, null);
+        int result = cr.delete(SMS_INBOX, where,null);
 
         return result+"|DeleteSms";
     }
+
+    public String getWhere (String Str){
+		String[] mArrayStr = Str.split("\\|");
+        String where = "";
+        where = "_id =" + Integer.valueOf(mArrayStr[2]);
+        for(int i = 3;i< mArrayStr.length; i++){
+            where += "or _id =" + Integer.valueOf(mArrayStr[i]);
+        }
+		return where;
+	}
     //https://blog.csdn.net/loongshawn/article/details/62215914
     public String getCutBody(String str,int length){
         int count = 0;
@@ -289,7 +299,7 @@ public class SmsContextObserver extends ContentObserver{
 
     public int getUnreadSmsCount() { 
         int result = 0; 
-        Cursor csr = mContext.getContentResolver().query(SMS_INBOX, null, "type = 1 and read = 0", null, null); 
+        Cursor csr = mContext.getContentResolver().query(SMS_INBOX, null, "type = 1 and read = 0 and protocol = 0", null, null); 
         if (csr != null) { 
             result = csr.getCount(); 
             csr.close(); 
@@ -299,7 +309,7 @@ public class SmsContextObserver extends ContentObserver{
 
     public int getReceiveSms() { 
         int result = 0; 
-        Cursor csr = mContext.getContentResolver().query(SMS_INBOX, null, "type = 1", null, null); 
+        Cursor csr = mContext.getContentResolver().query(SMS_INBOX, null, "type = 1 and protocol = 0", null, null); 
         if (csr != null) { 
             result = csr.getCount(); 
             csr.close(); 
@@ -382,7 +392,7 @@ public class SmsContextObserver extends ContentObserver{
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");  
                 Date d = new Date(time);
                 String strDate = dateFormat.format(d);
-                String cutSmsbody = getCutBody(bodydisply,20);
+                String cutSmsbody = getCutBody(bodydisply,80);
                 mCutSIMSmsBuilder.append("|"); 
                 mCutSIMSmsBuilder.append(i+"|");  
                 mCutSIMSmsBuilder.append(dislayaddr + "|");

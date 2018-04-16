@@ -88,7 +88,18 @@ public class ConnectCustomer {
              
            return "1|"+"Connect_Customer|"+connectNumber+connectedIp;
      }
+    public int getconnectNumber(){
 
+        CustomerThread mCustomerThread = new CustomerThread();
+        mCustomerThread.start(); 
+        try {  
+            mCustomerThread.join();  
+        } catch (InterruptedException e) {  
+            e.printStackTrace();
+        } 
+
+    return connectNumber;
+    }
     public class CustomerThread extends Thread {
 
         @Override  
