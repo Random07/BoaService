@@ -247,7 +247,7 @@ public class BoaService extends Service {
                             android.util.Log.d(TAG,mAction+" not support!");
                         break;
                     }
-                    android.util.Log.d(TAG,mFlushString+"sendMessage");
+                    android.util.Log.d(TAG,"ReturnMessage="+mFlushString);
                     if(TextUtils.isEmpty(mFlushString)){
                         mFlushString = 0 + "|" + mAction;
                     }

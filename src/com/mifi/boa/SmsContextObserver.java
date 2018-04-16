@@ -247,16 +247,19 @@ public class SmsContextObserver extends ContentObserver{
         android.util.Log.d(TAG,"getWhere"+where);
         ContentResolver cr = mContext.getContentResolver();
         int result = cr.delete(SMS_INBOX, where,null);
-
-        return result+"|DeleteSms";
+        if(result > 0){
+          return "1"+"|DeleteSms";
+		}else{
+          return "0"+"|DeleteSms";
+		}
     }
 
     public String getWhere (String Str){
 		String[] mArrayStr = Str.split("\\|");
         String where = "";
-        where = "_id =" + Integer.valueOf(mArrayStr[2]);
+        where = "_id = " + Integer.valueOf(mArrayStr[2]);
         for(int i = 3;i< mArrayStr.length; i++){
-            where += "or _id =" + Integer.valueOf(mArrayStr[i]);
+            where += " or _id = " + Integer.valueOf(mArrayStr[i]);
         }
 		return where;
 	}
