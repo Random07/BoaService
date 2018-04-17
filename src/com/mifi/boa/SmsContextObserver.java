@@ -24,6 +24,8 @@ import android.telephony.SmsMessage;
 import android.telephony.SmsParameters;
 import java.util.ArrayList;
 import android.os.SystemProperties;
+import android.text.TextUtils;
+
 
 
 
@@ -115,7 +117,8 @@ public class SmsContextObserver extends ContentObserver{
             @Override
             public void onReceive(Context content, Intent intent) {    
                 int state = telephonyManager.getSimState();    
-                if(state == TelephonyManager.SIM_STATE_READY){ 
+                if(state == TelephonyManager.SIM_STATE_READY){
+                    android.util.Log.d(TAG,"SIM Card Change");
                     ReadSimSmsThread mReadSimSms = new ReadSimSmsThread();
                     mReadSimSms.start();
                 }
@@ -292,6 +295,10 @@ public class SmsContextObserver extends ContentObserver{
     }
 
     public String SendSms(String Str){
+         if(TextUtils.isEmpty(getMccMnc())){
+            android.util.Log.d(TAG,"Sim card is null");
+            return "0|SendSms";
+        }
         Intent intent = new Intent();
         intent.setAction("BoaService.Send.SMS");
         intent.putExtra("data",Str);
@@ -321,14 +328,22 @@ public class SmsContextObserver extends ContentObserver{
     } 
 
     public String getSmsSettings (){
+        if(TextUtils.isEmpty(getMccMnc())){
+            android.util.Log.d(TAG,"Sim card is null");
+            return "0|GetSmsSettings";
+        }
         mPhone.getSmscAddress(mHandler.obtainMessage(EVENT_HANDLE_GET_SCA_DONE));
-		 SmsManager smsManager = SmsManager.getDefault();
-         int time = smsManager.getSmsParameters().vp;
-		 String report = SystemProperties.get(Sms_Report,"0");
-        return "0|GetSmsSettings|"+time+"|"+mScAddress+"|"+report;
+        SmsManager smsManager = SmsManager.getDefault();
+        int time = smsManager.getSmsParameters().vp;
+        String report = SystemProperties.get(Sms_Report,"0");
+        return "1|GetSmsSettings|"+time+"|"+mScAddress+"|"+report;
     }
 
     public String setSmsSettings(String str){
+        if(TextUtils.isEmpty(getMccMnc())){
+            android.util.Log.d(TAG,"Sim card is null");
+            return "0|SetSmsSettings";
+        }
         String sca = getScAddressFromStr(str);
         mPhone.setSmscAddress(sca, mHandler.obtainMessage(EVENT_HANDLE_SET_SCA_DONE));
 		SmsManager smsManager = SmsManager.getDefault();
@@ -358,7 +373,9 @@ public class SmsContextObserver extends ContentObserver{
         return resuultint+"|SetSMsVaildTime";
     }*/
 
-
+    public String getMccMnc(){
+        return TelephonyManager.from(mContext).getSimOperatorNumericForPhone(0);
+    }
 	public String getScAddressFromStr (String Str){
 		String mArrayStr[] = Str.split("\\|");
 		return mArrayStr[3];
@@ -378,6 +395,10 @@ public class SmsContextObserver extends ContentObserver{
 	}
 
 	public String getSmsFromSIM(String str){
+         if(TextUtils.isEmpty(getMccMnc())){
+            android.util.Log.d(TAG,"Sim card is null");
+            return "0|GetSIMSms";
+        }
         int pagenumber = getpageNumber(str);
         int pagecount = pagenumber*10;
         final int count = messages.size();
@@ -391,13 +412,14 @@ public class SmsContextObserver extends ContentObserver{
                 oncecount++;
                 String bodydisply = message.getDisplayMessageBody();
                 String dislayaddr= message.getDisplayOriginatingAddress();
+                int index = message.getIndexOnSim();
                 long time = message.getTimestampMillis();
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");  
                 Date d = new Date(time);
                 String strDate = dateFormat.format(d);
                 String cutSmsbody = getCutBody(bodydisply,60);
                 mCutSIMSmsBuilder.append("|"); 
-                mCutSIMSmsBuilder.append(i+"|");  
+                mCutSIMSmsBuilder.append(index+"|");
                 mCutSIMSmsBuilder.append(dislayaddr + "|");
                 mCutSIMSmsBuilder.append(cutSmsbody+ "|");  
                 mCutSIMSmsBuilder.append(strDate);
@@ -407,22 +429,27 @@ public class SmsContextObserver extends ContentObserver{
 		return result+"|GetSIMSms|"+count+"|"+oncecount+mCutSIMSmsBuilder.toString();
      }
     public String getOneSmsFromSIM(String str){
+        if(TextUtils.isEmpty(getMccMnc())){
+            android.util.Log.d(TAG,"Sim card is null");
+            return "0|GetOneSIMSms";
+        }
         int key = getSimSmsID(str);
         StringBuilder mSIMSmsBuilder = new StringBuilder();
         final int count = messages.size();
         for (int i = 0; i < count; i++) {
             SmsMessage message = messages.get(i);
-            if (message != null && i == key) {
-                android.util.Log.d(TAG,"i ="+i);
+            if (message != null && key == message.getIndexOnSim()) {
                 String bodydisply = message.getDisplayMessageBody();
                 String dislayaddr= message.getDisplayOriginatingAddress();
+                int index = message.getIndexOnSim();
                 String addr= message.getOriginatingAddress();
                 long time = message.getTimestampMillis();
                 SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");  
                 Date d = new Date(time);
                 String strDate = dateFormat.format(d);
+                android.util.Log.d(TAG,"key ="+key+"index ="+index);
                 mSIMSmsBuilder.append("|"); 
-                mSIMSmsBuilder.append(i+"|");  
+                mSIMSmsBuilder.append(index+"|"); 
                 mSIMSmsBuilder.append(dislayaddr + "|");
                 mSIMSmsBuilder.append(bodydisply+ "|");  
                 mSIMSmsBuilder.append(strDate);
