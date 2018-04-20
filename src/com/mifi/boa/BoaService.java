@@ -29,6 +29,8 @@ import android.os.IBinder;
 import android.content.IntentFilter;
 import android.net.Uri;
 import android.content.ContentResolver;
+import android.os.SystemProperties;
+
 
 
 public class BoaService extends Service {
@@ -45,6 +47,7 @@ public class BoaService extends Service {
     private WiFiSettings mWiFiSettings;
     private BoaReceiver mBoaReceiver;
     private SmsContextObserver mSmsContextObserver;
+	final String USER_WIFI = "persist.sys.user.wifi";
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -64,7 +67,10 @@ public class BoaService extends Service {
             getContentResolver().registerContentObserver(Uri.parse("content://sms/icc"), true, mSmsContextObserver);
         }
         mWiFiSettings.startWifiAp();
-        mWiFiSettings.ConfigWifiAp("4G_MIFI",false,2,"12345678",6);
+		if(SystemProperties.get(USER_WIFI,"true").equals(true)){
+			mWiFiSettings.ConfigWifiAp("4G_MIFI",false,2,"12345678",6);
+			SystemProperties.set(USER_WIFI,"false");
+		}
         new ServerListener().start();		
         return START_STICKY;
     }
