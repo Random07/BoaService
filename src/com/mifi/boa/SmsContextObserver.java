@@ -334,6 +334,9 @@ public class SmsContextObserver extends ContentObserver{
         }
         mPhone.getSmscAddress(mHandler.obtainMessage(EVENT_HANDLE_GET_SCA_DONE));
         SmsManager smsManager = SmsManager.getDefault();
+		if(smsManager.getSmsParameters() == null){
+		return "0|GetSmsSettings";
+		}
         int time = smsManager.getSmsParameters().vp;
         String report = SystemProperties.get(Sms_Report,"0");
         return "1|GetSmsSettings|"+time+"|"+mScAddress+"|"+report;
