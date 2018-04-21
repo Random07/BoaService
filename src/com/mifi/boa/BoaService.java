@@ -67,7 +67,7 @@ public class BoaService extends Service {
             getContentResolver().registerContentObserver(Uri.parse("content://sms/icc"), true, mSmsContextObserver);
         }
         mWiFiSettings.startWifiAp();
-		if(SystemProperties.get(USER_WIFI,"true").equals(true)){
+		if(SystemProperties.get(USER_WIFI,"true").equals("true")){
 			mWiFiSettings.ConfigWifiAp("4G_MIFI",false,2,"12345678",6);
 			SystemProperties.set(USER_WIFI,"false");
 		}
