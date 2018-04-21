@@ -22,6 +22,7 @@ import android.os.AsyncResult;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.telephony.SmsParameters;
+import android.telephony.SubscriptionManager;
 import java.util.ArrayList;
 import android.os.SystemProperties;
 import android.text.TextUtils;
@@ -38,6 +39,7 @@ public class SmsContextObserver extends ContentObserver{
     private TelephonyManager telephonyManager;
     private Phone mPhone = null;
     private String mScAddress;
+	private SmsManager mSmsManager;
     private boolean mSetSCAresult = false;
     private static final int EVENT_HANDLE_GET_SCA_DONE = 47;
     private static final int EVENT_HANDLE_SET_SCA_DONE = 49;
@@ -81,6 +83,8 @@ public class SmsContextObserver extends ContentObserver{
         telephonyManager = TelephonyManager.from(mContext);
         initBroadReceiver();
         mPhone = PhoneFactory.getDefaultPhone();
+		int subid = SubscriptionManager.getDefaultSubscriptionId();
+		mSmsManager =SmsManager.getSmsManagerForSubscriptionId(subid);
         mPhone.getSmscAddress(mHandler.obtainMessage(EVENT_HANDLE_GET_SCA_DONE));
         ReadSimSmsThread mReadSimSms = new ReadSimSmsThread();
         mReadSimSms.start();
@@ -333,11 +337,7 @@ public class SmsContextObserver extends ContentObserver{
             return "0|GetSmsSettings";
         }
         mPhone.getSmscAddress(mHandler.obtainMessage(EVENT_HANDLE_GET_SCA_DONE));
-        SmsManager smsManager = SmsManager.getDefault();
-		if(smsManager.getSmsParameters() == null){
-		return "0|GetSmsSettings";
-		}
-        int time = smsManager.getSmsParameters().vp;
+        int time = mSmsManager.getSmsParameters().vp;
         String report = SystemProperties.get(Sms_Report,"0");
         return "1|GetSmsSettings|"+time+"|"+mScAddress+"|"+report;
     }
@@ -349,8 +349,7 @@ public class SmsContextObserver extends ContentObserver{
         }
         String sca = getScAddressFromStr(str);
         mPhone.setSmscAddress(sca, mHandler.obtainMessage(EVENT_HANDLE_SET_SCA_DONE));
-		SmsManager smsManager = SmsManager.getDefault();
-        SmsParameters mSmsParameters = smsManager.getSmsParameters();
+        SmsParameters mSmsParameters = mSmsManager.getSmsParameters();
         int time = getSmstime(str);
         mSmsParameters.vp = time ;
         boolean resulttime = smsManager.setSmsParameters(mSmsParameters);
@@ -472,8 +471,7 @@ public class SmsContextObserver extends ContentObserver{
 
 		@Override  
 		public void run(){
-			SmsManager smsManager = SmsManager.getDefault();
-			messages= smsManager.getAllMessagesFromIcc();
+			messages= mSmsManager.getAllMessagesFromIcc();
 			android.util.Log.d(TAG,"ArrayList<SmsMessage>");
 		}
 
