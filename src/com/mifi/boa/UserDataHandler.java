@@ -158,18 +158,15 @@ public class UserDataHandler {
                 mPolicyEditor.setPolicyCycleDay(mTemplate,1,new Time().timezone);
             }
 
-            long mLimit = mPolicyEditor.getPolicyLimitBytes(mTemplate);
-            long mClearedLimit = getClearedDataForLimit();
             long mMonthCleared = getClearedDataForMonth();
             long mDayCleared = getClearedDataForDay();
             long mMonthUsed = usageInfo.usageLevel - mMonthCleared;
             long mDayUsed = getDataForDay();
 
-            Log.d(TAG, "getDataStatic, mLimit = " + ", mClearedLimit = " + mClearedLimit + mLimit + ", mMonthUsed = " + mMonthUsed 
-                + ", mDayUsed = " + mDayUsed + ", mMonthCleared = " + mMonthCleared + ", mDayCleared = " + mDayCleared);
+            Log.d(TAG, "getDataStatic, mMonthUsed = " + mMonthUsed + ", mDayUsed = "
+                + mDayUsed + ", mMonthCleared = " + mMonthCleared + ", mDayCleared = " + mDayCleared);
             mDayUsed -= mDayCleared;
-            mLimit -= mClearedLimit;
-            mStr += mDayUsed + "|"+ mMonthUsed + "|" + mLimit;
+            mStr += mDayUsed + "|"+ mMonthUsed + "|" + SystemProperties.get(DATALIMIT_NUMBER,"-1");
         }else{
             mStr = "0|DataStatic";
             Log.d(TAG, "get network template fail,so used data and limit data is null!");
@@ -247,13 +244,13 @@ public class UserDataHandler {
     }
 
     public void updateLimitData(long addLimit, String curMouth){
-        long limitData = Long.parseLong(SystemProperties.get(DATALIMIT_NUMBER,"0"));
+        long limitData = Long.parseLong(SystemProperties.get(DATALIMIT_NUMBER,"-1"));
         long limitDataClear = getClearedDataForLimit();
         SystemProperties.set(DATALIMIT_NUMBER_CLEAR,String.valueOf(limitDataClear + addLimit));
         SystemProperties.set(DATALIMIT_NUMBER_CLEAR_TIME,curMouth);
 
         Log.d(TAG, "updateLimitData, limitData = " + limitData + ", limitDataClear = " + limitDataClear + ", addLimit = " + addLimit);
-        if(0 != limitData){ // has set limit data
+        if(-1 != limitData){ // has set limit data
             getNetworkTemplate();
             if(mTemplate != null){
                 mPolicyEditor.read();
@@ -322,11 +319,11 @@ public class UserDataHandler {
     }
 
     public void resetDataLimit(){
-        String mLimit = SystemProperties.get(DATALIMIT_NUMBER,"0");
+        String mLimit = SystemProperties.get(DATALIMIT_NUMBER,"-1");
 
         Log.d(TAG, "resetDataLimit mLimit = " + mLimit);
         getNetworkTemplate();
-        if((!"0".equals(mLimit)) && (mTemplate != null)){
+        if((!"-1".equals(mLimit)) && (mTemplate != null)){
             mPolicyEditor.read();
             mPolicyEditor.setPolicyLimitBytes(mTemplate, Long.parseLong(mLimit));
         }
