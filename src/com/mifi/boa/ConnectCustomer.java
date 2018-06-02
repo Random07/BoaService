@@ -89,15 +89,26 @@ public class ConnectCustomer {
      */
     public String getConnectCustomer(){
     
-         CustomerThread mCustomerThread = new CustomerThread();
+         /*CustomerThread mCustomerThread = new CustomerThread();
          mCustomerThread.start(); 
           try {  
             mCustomerThread.join();  
           } catch (InterruptedException e) {  
             e.printStackTrace();  
-          } 
+          }*/ 
+		  String ConnectCustom = "";
+          mClientList = mWifiManager.getHotspotClients();
+		  int mSize = mClientList.size();
+		  for (HotspotClient client : mClientList) {
+               String mDevicesName = mWifiManager.getClientDeviceName(client.deviceAddress);
+			   String Macaddress = client.deviceAddress;
+			   String mIpaddress = mWifiManager.getClientIp(client.deviceAddress);
+			   boolean mBlock= client.isBlocked;
+			   ConnectCustom += "|"+mDevicesName+"|"+Macaddress+"|"+mIpaddress+"|"+mBlock;
+		  }
+		 
              
-           return "1|"+"Connect_Customer|"+connectNumber+connectedIp;
+           return "1|"+"Connect_Customer|"+mSize+ConnectCustom;
      }
     public int getconnectNumber(){
 
@@ -117,8 +128,11 @@ public class ConnectCustomer {
 		boolean resultboolean = false;
 
 		mClientList = mWifiManager.getHotspotClients();
+		android.util.Log.d(TAG,"mClientList.size()"+mClientList.size());
 		for (HotspotClient client : mClientList) {
+		
 			if(MacAddress.equals(client.deviceAddress)){
+			    android.util.Log.d(TAG,"enter blockClient");
 				if(whether == true){
 					
 					android.util.Log.d(TAG,"blockClient");
@@ -143,12 +157,13 @@ public class ConnectCustomer {
 
 	public boolean  getNeedblock(String str){
 		String[] mData = str.split("\\|");     
-		return mData[2].equals("true")? true : false ;
+		return mData[3].equals("true")? true : false ;
 	}
 	
 
 	public boolean getBooleanBlock(String MacAddress){
 		mClientList = mWifiManager.getHotspotClients();
+		android.util.Log.d(TAG,"mClientList.size()"+mClientList.size());
 		for (HotspotClient client : mClientList) {
 			if (MacAddress.equals(client.deviceAddress) ){
 				return client.isBlocked;
