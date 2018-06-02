@@ -51,6 +51,9 @@
             <intent-filter>
                 <action android:name="com.mifi.boa.set.DataLimit"/>
                 <action android:name="com.mifi.boa.get.DataStatic"/>
+                <action android:name="com.mifi.boa.clear.data"/>
+                <action android:name="com.mifi.boa.reset.datalimit"/>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
        </receiver>
 

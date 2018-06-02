@@ -34,6 +34,7 @@ public class UserData {
         intentFilter = new IntentFilter();
         intentFilter.addAction("com.mifi.boa.confirm.DataStatic");
         intentFilter.addAction("com.mifi.boa.confirm.DataLimit");
+        intentFilter.addAction("com.mifi.boa.confirm.ClearData");
         mContext.registerReceiver(mUserDataConfirmReceiver, intentFilter);
     }
 
@@ -49,13 +50,14 @@ public class UserData {
     }
 
     public String setDataLimit(String data){
+        Log.d(TAG, "setDataLimit");
         mUserDataResult = "";
         Intent intent = new Intent();
         intent.setAction("com.mifi.boa.set.DataLimit");
         intent.putExtra("data",data);
         mContext.sendBroadcast(intent);
+        Log.d(TAG, "setDataLimit, data = "+data);
         while("".equals(mUserDataResult)){
-            Log.d("xjhe", "setDataLimit, mUserDataResult = "+mUserDataResult);
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -67,13 +69,32 @@ public class UserData {
         return mUserDataResult;
     }
 
+    public String clearData(String data){
+        mUserDataResult = "";
+        Intent intent = new Intent();
+        intent.setAction("com.mifi.boa.clear.data");
+        intent.putExtra("data",data);
+        mContext.sendBroadcast(intent);
+        Log.d(TAG, "clearData, data = "+data);
+        while("".equals(mUserDataResult)){
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            // Do nothing
+        }
+        Log.d(TAG, "clearData, mUserDataResult = "+mUserDataResult);
+        return mUserDataResult;
+    }
+
     public String getDataStatic(){
         mUserDataResult = "";
         Intent intent = new Intent();
         intent.setAction("com.mifi.boa.get.DataStatic");
         mContext.sendBroadcast(intent);
+        Log.d(TAG, "getDataStatic!");
         while("".equals(mUserDataResult)){
-            Log.d("xjhe", "getDataStatic, mUserDataResult = "+mUserDataResult);
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
@@ -124,7 +145,8 @@ public class UserData {
             final String action = intent.getAction();
             Log.v(TAG, "Received broadcast: " + action);
             if (action.equals("com.mifi.boa.confirm.DataLimit")
-                    || action.equals("com.mifi.boa.confirm.DataStatic")) {
+                    || action.equals("com.mifi.boa.confirm.DataStatic")
+                    || action.equals("com.mifi.boa.confirm.ClearData")) {
                 mUserDataResult = intent.getStringExtra("data");
                 Log.d(TAG, "confirm data = " + mUserDataResult);
             }

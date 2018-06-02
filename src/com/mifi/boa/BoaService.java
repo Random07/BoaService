@@ -189,6 +189,9 @@ public class BoaService extends Service {
                         case "DataStatic":
                             mFlushString = mUserData.getDataStatic();
                         break;
+                        case "ClearUsedData":
+                            mFlushString = mUserData.clearData(string);
+                        break;
                         case "SetNetworkType":
                              mFlushString = mUserData.setNetworkType(string);
                         break;

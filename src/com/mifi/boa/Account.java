@@ -4,12 +4,13 @@ import android.content.Context;
 import android.os.SystemProperties;
 import android.text.TextUtils;
 import android.util.Log;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 
 public class Account {
     final String TAG = "BoaService_Account";
     final String MIFI_USERNAME = "persist.sys.user.name";
     final String MIFI_PASSWORD = "persist.sys.user.password";
-    final long MIFI_END_TIME = 1527782400000L;
     private static Account sInstance;
     private Context mContext;
     public static Account getInstance(Context mCont){
@@ -26,12 +27,16 @@ public class Account {
     public boolean isAccountValid(){
         long mCurTime = System.currentTimeMillis();
         boolean bRet = true;
-
-        if(mCurTime > MIFI_END_TIME){
+        Date date = new Date(2018, 8, 1);
+        long endTime = date.getTime();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        String strDate = dateFormat.format(mCurTime);
+        
+        if(mCurTime > endTime){
             bRet = false;
         }
 
-        Log.d(TAG,"mCurTime = " + mCurTime + ", isAccountValid = " + bRet);
+        Log.d(TAG,"strDate = " + strDate + ", isAccountValid = " + bRet);
         return bRet;
     }
 

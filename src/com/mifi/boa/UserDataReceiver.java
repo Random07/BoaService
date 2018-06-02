@@ -7,7 +7,7 @@ import android.content.IntentFilter;
 import android.util.Log;
 
 public class UserDataReceiver extends BroadcastReceiver {
-    static final String TAG = "Boservice_UserDataReceiver";
+    static final String TAG = "BoaService_UserDataReceiver";
     private UserDataHandler mUserDataHandler;
 
     @Override
@@ -26,9 +26,23 @@ public class UserDataReceiver extends BroadcastReceiver {
         }else if("com.mifi.boa.get.DataStatic".equals(action)){
             mRet = mUserDataHandler.getDataStatic();
             resultIntent.setAction("com.mifi.boa.confirm.DataStatic");
+        }else if("com.mifi.boa.clear.data".equals(action)){
+            String data=intent.getStringExtra("data");
+            Log.d(TAG, "clear data : " + data);
+            mRet = mUserDataHandler.clearData(data);
+            resultIntent.setAction("com.mifi.boa.confirm.ClearData");
+        }else if("com.mifi.boa.reset.datalimit".equals(action)){
+            mUserDataHandler.resetDataLimit();
+        }else if("android.intent.action.BOOT_COMPLETED".equals(action)){
+            mUserDataHandler.checkResetDataLimit();
         }
+
         Log.d(TAG, "mRet: " + mRet);
-        resultIntent.putExtra("data",mRet);
-        context.sendBroadcast(resultIntent);
+        if(!"".equals(mRet)){
+            resultIntent.putExtra("data",mRet);
+            context.sendBroadcast(resultIntent);
+        }else{
+            Log.d(TAG, "Do not send result!");
+        }
     }
 }
