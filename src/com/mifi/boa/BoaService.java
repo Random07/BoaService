@@ -66,11 +66,11 @@ public class BoaService extends Service {
          if (mSmsContextObserver != null) {
             getContentResolver().registerContentObserver(Uri.parse("content://sms/icc"), true, mSmsContextObserver);
         }
-        mWiFiSettings.startWifiAp();
 		if(SystemProperties.get(USER_WIFI,"true").equals("true")){
 			mWiFiSettings.ConfigWifiAp("4G_MIFI",false,2,"12345678",6);
 			SystemProperties.set(USER_WIFI,"false");
 		}
+		mWiFiSettings.startWifiAp();
         new ServerListener().start();		
         return START_STICKY;
     }
@@ -90,7 +90,7 @@ public class BoaService extends Service {
         mContext = getApplication();
         mBoaReceiver = new BoaReceiver();
         mAccount = Account.getInstance(mContext);
-        mConnectCustomer = ConnectCustomer.getInstance();
+        mConnectCustomer = ConnectCustomer.getInstance(mContext);
         mUserData = UserData.getInstance(mContext);
         mApnSettings = ApnSettings.getInstance(mContext);
         mWiFiSettings = WiFiSettings.getInstance(mContext);
@@ -176,6 +176,9 @@ public class BoaService extends Service {
                             break;
                         case "Connect_Customer":
                             mFlushString = mConnectCustomer.getConnectCustomer();
+                        break;
+						case "BlockClient":
+                            mFlushString = mConnectCustomer.SetWhetherblockClient(string);
                         break;
                         case "DeviceInfo":
                             mFlushString = mDeviceInfo.getDeviceInfo();

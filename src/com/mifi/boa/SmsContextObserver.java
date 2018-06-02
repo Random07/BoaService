@@ -352,7 +352,7 @@ public class SmsContextObserver extends ContentObserver{
         SmsParameters mSmsParameters = mSmsManager.getSmsParameters();
         int time = getSmstime(str);
         mSmsParameters.vp = time ;
-        boolean resulttime = smsManager.setSmsParameters(mSmsParameters);
+        boolean resulttime = mSmsManager.setSmsParameters(mSmsParameters);
 		String mSmsreport = getSmsReprot(str);
 		SystemProperties.set(Sms_Report,mSmsreport);
 		int result = resulttime == mSetSCAresult ? 1 : 0;

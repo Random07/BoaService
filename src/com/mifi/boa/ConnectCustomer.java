@@ -7,7 +7,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetAddress;
 import android.os.FileObserver;
-import android.os.Environment; 
+import android.os.Environment;
+import android.net.wifi.WifiManager;
+import android.content.Context;
+import android.net.wifi.HotspotClient;
+import java.util.List;
+
+
+
+
 
 public class ConnectCustomer {
     private static ConnectCustomer sInstance;
@@ -15,18 +23,21 @@ public class ConnectCustomer {
     private String connectedIp = "";
     private int connectNumber = 0;
     static final String TAG = "BoaService";
+	private WifiManager mWifiManager;
+	private Context mContext;
+	private List<HotspotClient> mClientList;
 
-    public static ConnectCustomer getInstance(){
+    public static ConnectCustomer getInstance(Context contex){
         if (null == sInstance) {
-            sInstance = new ConnectCustomer();
+            sInstance = new ConnectCustomer(contex);
             
         }
         return sInstance;
     }
 
-    public ConnectCustomer (){
-           
-
+    public ConnectCustomer (Context contex ){
+     mContext = contex;
+     mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
     }
 
     public void init(){
@@ -100,6 +111,55 @@ public class ConnectCustomer {
 
     return connectNumber;
     }
+	public String  SetWhetherblockClient(String str){
+		String MacAddress = getClientMacAddress(str);
+		boolean whether = getNeedblock(str);
+		boolean resultboolean = false;
+
+		mClientList = mWifiManager.getHotspotClients();
+		for (HotspotClient client : mClientList) {
+			if(MacAddress.equals(client.deviceAddress)){
+				if(whether == true){
+					
+					android.util.Log.d(TAG,"blockClient");
+					resultboolean = mWifiManager.blockClient(client);
+				}else if (whether == false){
+				
+				 	android.util.Log.d(TAG,"unblockClient");
+					resultboolean = mWifiManager.unblockClient(client);
+				}
+			}
+		}
+	    String Result = resultboolean ? "1" : "0";
+		return Result+"|BlockClient|";
+	}
+	
+	public String getClientMacAddress(String str){
+		String[] mData = str.split("\\|");
+		android.util.Log.d(TAG,"need block or unbolck  macAddress"+mData[2] );
+		return mData[2];
+	}
+
+
+	public boolean  getNeedblock(String str){
+		String[] mData = str.split("\\|");     
+		return mData[2].equals("true")? true : false ;
+	}
+	
+
+	public boolean getBooleanBlock(String MacAddress){
+		mClientList = mWifiManager.getHotspotClients();
+		for (HotspotClient client : mClientList) {
+			if (MacAddress.equals(client.deviceAddress) ){
+				return client.isBlocked;
+			}			 	
+		}
+		android.util.Log.d(TAG,"no found client from macAddress");
+		return false;
+
+	}
+
+	
     public class CustomerThread extends Thread {
 
         @Override  
@@ -118,7 +178,8 @@ public class ConnectCustomer {
                         android.util.Log.d("BoaService","customName"+splitted[0]);
                         if(isReachable){
                             connectNumber++; 
-                            connectedIp +=("|"+splitted[0]+"|"+splitted[3]+"|"+splitted[5]);
+							boolean ifblock = getBooleanBlock(splitted[3]);
+                            connectedIp +=("|"+splitted[0]+"|"+splitted[3]+"|"+splitted[5]+"|"+ifblock);
                         }
                     }
                 }
