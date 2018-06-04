@@ -18,14 +18,16 @@ import java.util.List;
 
 
 public class ConnectCustomer {
-    private static ConnectCustomer sInstance;
-    private BufferedReader br;
-    private String connectedIp = "";
-    private int connectNumber = 0;
-    static final String TAG = "BoaService";
+	private static ConnectCustomer sInstance;
+	private BufferedReader br;
+	private String connectedIp = "";
+	private int connectNumber = 0;
+	static final String TAG = "BoaService";
 	private WifiManager mWifiManager;
 	private Context mContext;
 	private List<HotspotClient> mClientList;
+	private String BlockMacAddressList="";
+	private int BlockNumber=0;
 
     public static ConnectCustomer getInstance(Context contex){
         if (null == sInstance) {
@@ -35,16 +37,16 @@ public class ConnectCustomer {
         return sInstance;
     }
 
-    public ConnectCustomer (Context contex ){
-     mContext = contex;
-     mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
-    }
+	public ConnectCustomer (Context contex ){
+		mContext = contex;
+		mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+	}
 
-    public void init(){
-        android.util.Log.d(TAG,"mObserver");
-        CustomerFileObserver mObserver = new CustomerFileObserver("/proc/net/arp");
-        mObserver.startWatching(); 
-    }
+	public void init(){
+		android.util.Log.d(TAG,"mObserver");
+		CustomerFileObserver mObserver = new CustomerFileObserver("/proc/net/arp");
+		mObserver.startWatching(); 
+	}
 
     private class CustomerFileObserver extends FileObserver{
 
@@ -56,14 +58,14 @@ public class ConnectCustomer {
 
           @Override
         public void startWatching() {
-        android.util.Log.d(TAG,"startWatching");
+        	android.util.Log.d(TAG,"startWatching");
             super.startWatching();
          
         }
 
            @Override
         public void stopWatching() {
-        android.util.Log.d(TAG,"stopWatching");
+        	android.util.Log.d(TAG,"stopWatching");
             super.stopWatching();
          
         }
@@ -87,41 +89,49 @@ public class ConnectCustomer {
      * @parameter ReachableTimeout reach timeout
      * @return
      */
-    public String getConnectCustomer(){
-    
-         /*CustomerThread mCustomerThread = new CustomerThread();
-         mCustomerThread.start(); 
-          try {  
-            mCustomerThread.join();  
-          } catch (InterruptedException e) {  
-            e.printStackTrace();  
-          }*/ 
-		  String ConnectCustom = "";
-          mClientList = mWifiManager.getHotspotClients();
-		  int mSize = mClientList.size();
-		  for (HotspotClient client : mClientList) {
-               String mDevicesName = mWifiManager.getClientDeviceName(client.deviceAddress);
-			   String Macaddress = client.deviceAddress;
-			   String mIpaddress = mWifiManager.getClientIp(client.deviceAddress);
-			   boolean mBlock= client.isBlocked;
-			   ConnectCustom += "|"+mDevicesName+"|"+Macaddress+"|"+mIpaddress+"|"+mBlock;
-		  }
-		 
-             
-           return "1|"+"Connect_Customer|"+mSize+ConnectCustom;
-     }
-    public int getconnectNumber(){
+	public String getConnectCustomer(){
 
-        CustomerThread mCustomerThread = new CustomerThread();
-        mCustomerThread.start(); 
-        try {  
-            mCustomerThread.join();  
-        } catch (InterruptedException e) {  
-            e.printStackTrace();
-        } 
+		/*CustomerThread mCustomerThread = new CustomerThread();
+		mCustomerThread.start(); 
+		try {  
+		mCustomerThread.join();  
+		} catch (InterruptedException e) {  
+		e.printStackTrace();  
+		}*/ 
+		String ConnectCustom = "";
+		mClientList = mWifiManager.getHotspotClients();
+		int mSize = mClientList.size();
+		for (HotspotClient client : mClientList) {
+			String mDevicesName = mWifiManager.getClientDeviceName(client.deviceAddress);
+			String Macaddress = client.deviceAddress;
+			String mIpaddress = mWifiManager.getClientIp(client.deviceAddress);
+			boolean mBlock= client.isBlocked;
+			ConnectCustom += "|"+mDevicesName+"|"+Macaddress+"|"+mIpaddress+"|"+mBlock;
+		}
 
-    return connectNumber;
-    }
+
+	return "1|"+"Connect_Customer|"+mSize+ConnectCustom;
+	}
+	
+	public String getBlockCustomerList(){
+
+	return "1|GetBlockList|"+BlockNumber+"|"+BlockMacAddressList;
+	}
+
+	public void saveBlockList(String mblockMacAddress){
+		String mDevicesName = mWifiManager.getClientDeviceName(mblockMacAddress);
+		String mIpaddress = mWifiManager.getClientIp(mblockMacAddress);
+		BlockMacAddressList += "|"+mDevicesName+"|"+mblockMacAddress+"|"+mIpaddress;
+
+	}
+	
+	public int getconnectNumber(){
+
+		mClientList = mWifiManager.getHotspotClients();
+		int mSize = mClientList.size();
+	return mSize;
+	}
+	
 	public String  SetWhetherblockClient(String str){
 		String MacAddress = getClientMacAddress(str);
 		boolean whether = getNeedblock(str);
@@ -134,7 +144,8 @@ public class ConnectCustomer {
 			if(MacAddress.equals(client.deviceAddress)){
 			    android.util.Log.d(TAG,"enter blockClient");
 				if(whether == true){
-					
+					BlockNumber++;
+					saveBlockList(MacAddress);
 					android.util.Log.d(TAG,"blockClient");
 					resultboolean = mWifiManager.blockClient(client);
 				}else if (whether == false){
@@ -145,19 +156,19 @@ public class ConnectCustomer {
 			}
 		}
 	    String Result = resultboolean ? "1" : "0";
-		return Result+"|BlockClient|";
+	return Result+"|BlockClient|";
 	}
 	
 	public String getClientMacAddress(String str){
 		String[] mData = str.split("\\|");
 		android.util.Log.d(TAG,"need block or unbolck  macAddress"+mData[2] );
-		return mData[2];
+	return mData[2];
 	}
 
 
 	public boolean  getNeedblock(String str){
 		String[] mData = str.split("\\|");     
-		return mData[3].equals("true")? true : false ;
+	return mData[3].equals("true")? true : false ;
 	}
 	
 
@@ -170,8 +181,7 @@ public class ConnectCustomer {
 			}			 	
 		}
 		android.util.Log.d(TAG,"no found client from macAddress");
-		return false;
-
+	return false;
 	}
 
 	

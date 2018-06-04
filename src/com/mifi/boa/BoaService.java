@@ -180,6 +180,9 @@ public class BoaService extends Service {
 						case "BlockClient":
                             mFlushString = mConnectCustomer.SetWhetherblockClient(string);
                         break;
+						case "GetBlockList":
+                            mFlushString = mConnectCustomer.getBlockCustomerList();
+                        break;
                         case "DeviceInfo":
                             mFlushString = mDeviceInfo.getDeviceInfo();
                         break;
