@@ -187,30 +187,34 @@ public class UserDataHandler {
         String curDay = getDateForCurrentTime(DATE_DAY);
         String data = getDataStatic();
         String[] mData = data.split("\\|");
-        long monthUsedData = Long.parseLong(mData[2]);
-        long dayUsedData = Long.parseLong(mData[3]);
-        long monthClearedData = getClearedDataForMonth();
-        long dayClearedData = getClearedDataForDay();
-        SharedPreferences sp = mContext.getSharedPreferences(NAME, MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
+        if(mData.length > 2){
+            long monthUsedData = Long.parseLong(mData[2]);
+            long dayUsedData = Long.parseLong(mData[3]);
+            long monthClearedData = getClearedDataForMonth();
+            long dayClearedData = getClearedDataForDay();
+            SharedPreferences sp = mContext.getSharedPreferences(NAME, MODE_PRIVATE);
+            SharedPreferences.Editor editor = sp.edit();
 
-        Log.d(TAG, "clear type = " + mCmd[2] + ", monthUsedData = " + monthUsedData + ", dayUsedData = " + dayUsedData + ", monthClearedData = " + monthClearedData + ", dayClearedData = " + dayClearedData);
+            Log.d(TAG, "clear type = " + mCmd[2] + ", monthUsedData = " + monthUsedData + ", dayUsedData = " + dayUsedData + ", monthClearedData = " + monthClearedData + ", dayClearedData = " + dayClearedData);
 
-        // update cleared data
-        editor.putString(DATALIMIT_MONTH_TIME, curMouth);
-        if("1".equals(mCmd[2])){ // Clear month
-            editor.putString(DATALIMIT_MONTH_NUMBER,String.valueOf(monthUsedData + monthClearedData));
-            updateLimitData(monthUsedData, curMouth);
-        }else if("2".equals(mCmd[2])){// Clear day
-            editor.putString(DATALIMIT_MONTH_NUMBER,String.valueOf(dayUsedData + monthClearedData));
-            updateLimitData(dayUsedData, curMouth);
+            // update cleared data
+            editor.putString(DATALIMIT_MONTH_TIME, curMouth);
+            if("1".equals(mCmd[2])){ // Clear month
+                editor.putString(DATALIMIT_MONTH_NUMBER,String.valueOf(monthUsedData + monthClearedData));
+                updateLimitData(monthUsedData, curMouth);
+            }else if("2".equals(mCmd[2])){// Clear day
+                editor.putString(DATALIMIT_MONTH_NUMBER,String.valueOf(dayUsedData + monthClearedData));
+                updateLimitData(dayUsedData, curMouth);
+            }
+            editor.putString(DATALIMIT_DAY_TIME,curDay);
+            editor.putString(DATALIMIT_DAY_NUMBER,String.valueOf(dayUsedData + dayClearedData));
+            editor.commit();
+
+            startResetTimer();
+            return "1|ClearUsedData";
+        }else{
+            return "0|ClearUsedData";
         }
-        editor.putString(DATALIMIT_DAY_TIME,curDay);
-        editor.putString(DATALIMIT_DAY_NUMBER,String.valueOf(dayUsedData + dayClearedData));
-        editor.commit();
-
-        startResetTimer();
-        return "1|ClearUsedData";
     }
 
     public String getDateForCurrentTime(int mType){
