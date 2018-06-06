@@ -15,28 +15,26 @@ import android.text.TextUtils;
 import java.util.Date;
 import android.content.Intent;
 import java.util.regex.Pattern;
+import android.os.SystemProperties;
 import java.text.SimpleDateFormat;
-import android.content.SharedPreferences;
 
 public class UserDataHandler {
-    final String TAG = "BoaService_UserDataHandler";
-    final String DATALIMIT_MONTH_TIME = "datalimit.month.time";
-    final String DATALIMIT_MONTH_NUMBER = "datalimit.month.number";
-    final String DATALIMIT_DAY_TIME = "datalimit.day.time";
-    final String DATALIMIT_DAY_NUMBER = "datalimit.day.number";
-    final String DATALIMIT_NUMBER = "datalimit_number";
-    final String DATALIMIT_NUMBER_CLEAR = "datalimit.clear";
-    final String DATALIMIT_NUMBER_CLEAR_TIME = "datalimit.clear.time";
-    final String DATALIMIT_NUMBER_RESET = "datalimit.reset";
-    final long KB_IN_BYTES = 1000;
-    final long MB_IN_BYTES = KB_IN_BYTES * 1000;
-    final long GB_IN_BYTES = MB_IN_BYTES * 1000;
-    final long MAX_DATA_LIMIT_BYTES = 50000 * GB_IN_BYTES;
-    final int DATE_YEAR = 0;
-    final int DATE_MONTH = 1;
-    final int DATE_DAY = 2;
-    final int MODE_PRIVATE = 0;
-    final String NAME = "boaservice";
+    public static final String TAG = "BoaService_UserDataHandler";
+    public static final String DATALIMIT_MONTH_TIME = "persist.sys.datalimit.month.time";
+    public static final String DATALIMIT_MONTH_NUMBER = "persist.sys.datalimit.month.number";
+    public static final String DATALIMIT_DAY_TIME = "persist.sys.datalimit.day.time";
+    public static final String DATALIMIT_DAY_NUMBER = "persist.sys.datalimit.day.number";
+    public static final String DATALIMIT_NUMBER = "persist.sys.datalimit";
+    public static final String DATALIMIT_NUMBER_CLEAR = "persist.sys.datalimit.clear";
+    public static final String DATALIMIT_NUMBER_CLEAR_TIME = "persist.sys.datalimit.clear.time";
+    public static final String DATALIMIT_NUMBER_RESET = "persist.sys.datalimit.reset";
+    public static final long KB_IN_BYTES = 1000;
+    public static final long MB_IN_BYTES = KB_IN_BYTES * 1000;
+    public static final long GB_IN_BYTES = MB_IN_BYTES * 1000;
+    public static final long MAX_DATA_LIMIT_BYTES = 50000 * GB_IN_BYTES;
+    public static final int DATE_YEAR = 0;
+    public static final int DATE_MONTH = 1;
+    public static final int DATE_DAY = 2;
     private static UserDataHandler sInstance;
     private Context mContext;
     NetworkPolicyManager mPolicyManager;
@@ -110,10 +108,7 @@ public class UserDataHandler {
             if(1 != mPolicyEditor.getPolicyCycleDay(mTemplate)){
                 mPolicyEditor.setPolicyCycleDay(mTemplate,1,new Time().timezone);
             }
-            SharedPreferences sp = mContext.getSharedPreferences(NAME, MODE_PRIVATE);
-            SharedPreferences.Editor editor = sp.edit();
-            editor.putString(DATALIMIT_NUMBER,String.valueOf(correctedBytes));
-            editor.commit();
+            SystemProperties.set(DATALIMIT_NUMBER,String.valueOf(correctedBytes));
             mPolicyEditor.setPolicyLimitBytes(mTemplate, correctedBytes + getClearedDataForLimit());
             return "1|DataLimit";
         }else{
@@ -157,22 +152,21 @@ public class UserDataHandler {
 
         getNetworkTemplate();
         if(mTemplate != null){
+            DataUsageController.DataUsageInfo usageInfo = controller.getDataUsageInfo(mTemplate);
             mPolicyEditor.read();
             if(1 != mPolicyEditor.getPolicyCycleDay(mTemplate)){
                 mPolicyEditor.setPolicyCycleDay(mTemplate,1,new Time().timezone);
-                sleep(100);
             }
-            DataUsageController.DataUsageInfo usageInfo = controller.getDataUsageInfo(mTemplate);
 
             long mMonthCleared = getClearedDataForMonth();
             long mDayCleared = getClearedDataForDay();
             long mMonthUsed = usageInfo.usageLevel - mMonthCleared;
             long mDayUsed = getDataForDay();
-            SharedPreferences sp = mContext.getSharedPreferences(NAME, MODE_PRIVATE);
+
             Log.d(TAG, "getDataStatic, mMonthUsed = " + mMonthUsed + ", mDayUsed = "
                 + mDayUsed + ", mMonthCleared = " + mMonthCleared + ", mDayCleared = " + mDayCleared);
             mDayUsed -= mDayCleared;
-            mStr += mMonthUsed + "|"+ mDayUsed + "|" + sp.getString(DATALIMIT_NUMBER,"-1");
+            mStr += mDayUsed + "|"+ mMonthUsed + "|" + SystemProperties.get(DATALIMIT_NUMBER,"-1");
         }else{
             mStr = "0|DataStatic";
             Log.d(TAG, "get network template fail,so used data and limit data is null!");
@@ -187,34 +181,27 @@ public class UserDataHandler {
         String curDay = getDateForCurrentTime(DATE_DAY);
         String data = getDataStatic();
         String[] mData = data.split("\\|");
-        if(mData.length > 2){
-            long monthUsedData = Long.parseLong(mData[2]);
-            long dayUsedData = Long.parseLong(mData[3]);
-            long monthClearedData = getClearedDataForMonth();
-            long dayClearedData = getClearedDataForDay();
-            SharedPreferences sp = mContext.getSharedPreferences(NAME, MODE_PRIVATE);
-            SharedPreferences.Editor editor = sp.edit();
+        long monthUsedData = Long.parseLong(mData[2]);
+        long dayUsedData = Long.parseLong(mData[3]);
+        long monthClearedData = getClearedDataForMonth();
+        long dayClearedData = getClearedDataForDay();
 
-            Log.d(TAG, "clear type = " + mCmd[2] + ", monthUsedData = " + monthUsedData + ", dayUsedData = " + dayUsedData + ", monthClearedData = " + monthClearedData + ", dayClearedData = " + dayClearedData);
+        Log.d(TAG, "clear type = " + mCmd[2] + ", monthUsedData = " + monthUsedData + ", dayUsedData = " + dayUsedData + ", monthClearedData = " + monthClearedData + ", dayClearedData = " + dayClearedData);
 
-            // update cleared data
-            editor.putString(DATALIMIT_MONTH_TIME, curMouth);
-            if("1".equals(mCmd[2])){ // Clear month
-                editor.putString(DATALIMIT_MONTH_NUMBER,String.valueOf(monthUsedData + monthClearedData));
-                updateLimitData(monthUsedData, curMouth);
-            }else if("2".equals(mCmd[2])){// Clear day
-                editor.putString(DATALIMIT_MONTH_NUMBER,String.valueOf(dayUsedData + monthClearedData));
-                updateLimitData(dayUsedData, curMouth);
-            }
-            editor.putString(DATALIMIT_DAY_TIME,curDay);
-            editor.putString(DATALIMIT_DAY_NUMBER,String.valueOf(dayUsedData + dayClearedData));
-            editor.commit();
-
-            startResetTimer();
-            return "1|ClearUsedData";
-        }else{
-            return "0|ClearUsedData";
+        // update cleared data
+        SystemProperties.set(DATALIMIT_MONTH_TIME,curMouth);
+        if("1".equals(mCmd[2])){ // Clear month
+            SystemProperties.set(DATALIMIT_MONTH_NUMBER,String.valueOf(monthUsedData + monthClearedData));
+            updateLimitData(monthUsedData, curMouth);
+        }else if("2".equals(mCmd[2])){// Clear day
+            SystemProperties.set(DATALIMIT_MONTH_NUMBER,String.valueOf(dayUsedData + monthClearedData));
+            updateLimitData(dayUsedData, curMouth);
         }
+        SystemProperties.set(DATALIMIT_DAY_TIME,curDay);
+        SystemProperties.set(DATALIMIT_DAY_NUMBER,String.valueOf(dayUsedData + dayClearedData));
+
+        startResetTimer();
+        return "1|ClearUsedData";
     }
 
     public String getDateForCurrentTime(int mType){
@@ -227,52 +214,43 @@ public class UserDataHandler {
     }
 
     private long getClearedDataForMonth(){
-        SharedPreferences sp = mContext.getSharedPreferences(NAME, MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
         String curMouth = getDateForCurrentTime(DATE_MONTH);
-        String clearMouth = sp.getString(DATALIMIT_MONTH_TIME,"-1");
+        String clearMouth = SystemProperties.get(DATALIMIT_MONTH_TIME,"-1");
 
         Log.d(TAG, "getClearedDataForMonth, curMouth = " + curMouth + ", clearMouth = " + clearMouth);
         if(clearMouth.equals(curMouth)){
-            String mRet = sp.getString(DATALIMIT_MONTH_NUMBER,"0");
+            String mRet = SystemProperties.get(DATALIMIT_MONTH_NUMBER,"0");
             return Long.parseLong(mRet);
         }else{
-            editor.putString(DATALIMIT_MONTH_TIME,"-1");
-            editor.putString(DATALIMIT_MONTH_NUMBER,"0");
-            editor.commit();
+            SystemProperties.set(DATALIMIT_MONTH_TIME,"-1");
+            SystemProperties.set(DATALIMIT_MONTH_NUMBER,"0");
         }
         return 0L;
     }
 
     private long getClearedDataForDay(){
-        SharedPreferences sp = mContext.getSharedPreferences(NAME, MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
         String curDay = getDateForCurrentTime(DATE_DAY);
-        String clearDay = sp.getString(DATALIMIT_DAY_TIME,"-1");
+        String clearDay = SystemProperties.get(DATALIMIT_DAY_TIME,"-1");
 
-        Log.d(TAG, "getClearedDataForDay, curDay = " + curDay + ", clearDay = " + clearDay);
+        Log.d(TAG, "getClearedDataForDay, curDay = " + curDay + ", clearMouth = " + clearDay);
         if(clearDay.equals(curDay)){
-            String mRet = sp.getString(DATALIMIT_DAY_NUMBER,"0");
+            String mRet = SystemProperties.get(DATALIMIT_DAY_NUMBER,"0");
             return Long.parseLong(mRet);
         }else{
-            editor.putString(DATALIMIT_DAY_TIME,"-1");
-            editor.putString(DATALIMIT_DAY_NUMBER,"0");
-            editor.commit();
+            SystemProperties.set(DATALIMIT_DAY_TIME,"-1");
+            SystemProperties.set(DATALIMIT_DAY_NUMBER,"0");
         }
         return 0L;
     }
 
     public void updateLimitData(long addLimit, String curMouth){
-        SharedPreferences sp = mContext.getSharedPreferences(NAME, MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
-        long limitData = Long.parseLong(sp.getString(DATALIMIT_NUMBER,"-1"));
+        long limitData = Long.parseLong(SystemProperties.get(DATALIMIT_NUMBER,"-1"));
         long limitDataClear = getClearedDataForLimit();
-        editor.putString(DATALIMIT_NUMBER_CLEAR,String.valueOf(limitDataClear + addLimit));
-        editor.putString(DATALIMIT_NUMBER_CLEAR_TIME,curMouth);
-        editor.commit();
+        SystemProperties.set(DATALIMIT_NUMBER_CLEAR,String.valueOf(limitDataClear + addLimit));
+        SystemProperties.set(DATALIMIT_NUMBER_CLEAR_TIME,curMouth);
 
         Log.d(TAG, "updateLimitData, limitData = " + limitData + ", limitDataClear = " + limitDataClear + ", addLimit = " + addLimit);
-        if(limitData > 0){ // has set limit data
+        if(-1 != limitData){ // has set limit data
             getNetworkTemplate();
             if(mTemplate != null){
                 mPolicyEditor.read();
@@ -282,13 +260,10 @@ public class UserDataHandler {
     }
 
     public void startResetTimer(){
-        SharedPreferences sp = mContext.getSharedPreferences(NAME, MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
-        String setTime = sp.getString(DATALIMIT_NUMBER_RESET,"0");
+        String setTime = SystemProperties.get(DATALIMIT_NUMBER_RESET,"0");
         Log.d(TAG, "startResetTimer setTime = " + setTime);
-        if("0".equals(setTime)){
-            editor.putString(DATALIMIT_NUMBER_RESET, getDateForCurrentTime(DATE_MONTH));
-            editor.commit();
+        if(!"0".equals(setTime)){
+            SystemProperties.set(DATALIMIT_NUMBER_RESET, getDateForCurrentTime(DATE_MONTH));
             setAlarm();
         }
     }
@@ -315,31 +290,26 @@ public class UserDataHandler {
         long time = date.getTime();
 
         Log.d(TAG, "setAlarm, time = " + time + ", mCurTime = " + mCurTime);
-        am.set(AlarmManager.RTC_WAKEUP, time - mCurTime , pi);
+        am.set(AlarmManager.RTC_WAKEUP, time -mCurTime , pi);
     }
 
     private long getClearedDataForLimit(){
-        SharedPreferences sp = mContext.getSharedPreferences(NAME, MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
         String curMonth = getDateForCurrentTime(DATE_MONTH);
-        String clearMonth = sp.getString(DATALIMIT_NUMBER_CLEAR_TIME,"-1");
+        String clearMonth = SystemProperties.get(DATALIMIT_NUMBER_CLEAR_TIME,"-1");
 
         Log.d(TAG, "getClearedDataForDay, curMonth = " + curMonth + ", clearMonth = " + clearMonth);
         if(clearMonth.equals(curMonth)){
-            String mRet = sp.getString(DATALIMIT_NUMBER_CLEAR,"0");
+            String mRet = SystemProperties.get(DATALIMIT_NUMBER_CLEAR,"0");
             return Long.parseLong(mRet);
         }else{
-            editor.putString(DATALIMIT_NUMBER_CLEAR_TIME,"-1");
-            editor.putString(DATALIMIT_NUMBER_CLEAR,"0");
-            editor.commit();
+            SystemProperties.set(DATALIMIT_NUMBER_CLEAR_TIME,"-1");
+            SystemProperties.set(DATALIMIT_NUMBER_CLEAR,"0");
         }
         return 0L;
     }
 
     public void checkResetDataLimit(){
-        SharedPreferences sp = mContext.getSharedPreferences(NAME, MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
-        String setTime = sp.getString(DATALIMIT_NUMBER_RESET,"0");
+        String setTime = SystemProperties.get(DATALIMIT_NUMBER_RESET,"0");
         String curMonth = getDateForCurrentTime(DATE_MONTH);
 
         Log.d(TAG, "checkResetDataLimit setTime = " + setTime + ", curMonth = " + curMonth);
@@ -349,18 +319,15 @@ public class UserDataHandler {
     }
 
     public void resetDataLimit(){
-        SharedPreferences sp = mContext.getSharedPreferences(NAME, MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
-        long mLimit = Long.parseLong(sp.getString(DATALIMIT_NUMBER,"-1"));
+        String mLimit = SystemProperties.get(DATALIMIT_NUMBER,"-1");
 
         Log.d(TAG, "resetDataLimit mLimit = " + mLimit);
         getNetworkTemplate();
-        if((mLimit > 0) && (mTemplate != null)){
+        if((!"-1".equals(mLimit)) && (mTemplate != null)){
             mPolicyEditor.read();
-            mPolicyEditor.setPolicyLimitBytes(mTemplate, mLimit);
+            mPolicyEditor.setPolicyLimitBytes(mTemplate, Long.parseLong(mLimit));
         }
-        editor.putString(DATALIMIT_NUMBER_RESET,"0");
-        editor.commit();
+        SystemProperties.set(DATALIMIT_NUMBER_RESET,"0");
     }
 
     private long getDataForDay(){
@@ -368,19 +335,9 @@ public class UserDataHandler {
         DataUsageController.DataUsageInfo usageInfo;
         long mRet = 0L;
         String day = getDateForCurrentTime(DATE_DAY);
-        Log.d(TAG, "getDataForDay day = " + day);
         mPolicyEditor.setPolicyCycleDay(mTemplate,Integer.parseInt(day),new Time().timezone);
-        sleep(100);
         usageInfo = controller.getDataUsageInfo(mTemplate);
         mPolicyEditor.setPolicyCycleDay(mTemplate,1,new Time().timezone);
         return usageInfo.usageLevel;
-    }
-
-    public void sleep(int mTime){
-        try {
-            Thread.sleep(mTime);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 }

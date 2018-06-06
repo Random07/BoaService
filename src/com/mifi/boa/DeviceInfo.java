@@ -18,6 +18,7 @@ import android.content.Intent;
 import android.os.BatteryManager;
 import android.os.Handler;
 import android.os.Message;
+import android.hardware.usb.UsbManager;
 
 public class DeviceInfo {
     private static final int MSG_SET_REBOOT = 1;
@@ -34,6 +35,7 @@ public class DeviceInfo {
     private MyPhoneStateListener mMyPhoneStateListener;
     private SmsContextObserver mSmsContextObserver;
     private ConnectCustomer mConnectCustomer;
+	private UsbManager mUsbManager;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -84,6 +86,7 @@ public class DeviceInfo {
         mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
         mMyPhoneStateListener = new MyPhoneStateListener();
         telephonyManager.listen(mMyPhoneStateListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+		mUsbManager = mContext.getSystemService(UsbManager.class);
     }
 
     public String getDeviceInfo(){
@@ -175,6 +178,43 @@ public class DeviceInfo {
         telephonyManager.setDataEnabled((enable == 1)?true:false);
     }
 
+	public String setUsbFunction(String mode) {
+		String fuction = getFuctionFromMode(mode);
+		switch (fuction) {
+			case "MTP":
+				mUsbManager.setCurrentFunction(UsbManager.USB_FUNCTION_MTP);
+				mUsbManager.setUsbDataUnlocked(true);
+			break;
+			case "PTP":
+				mUsbManager.setCurrentFunction(UsbManager.USB_FUNCTION_PTP);
+				mUsbManager.setUsbDataUnlocked(true);
+			break;
+			case "MIDI":
+				mUsbManager.setCurrentFunction(UsbManager.USB_FUNCTION_MIDI);
+				mUsbManager.setUsbDataUnlocked(true);
+			break;
+			/// M: Add for Built-in CD-ROM and USB Mass Storage @{
+			case "STORAGE":
+				mUsbManager.setCurrentFunction(UsbManager.USB_FUNCTION_MASS_STORAGE);
+				mUsbManager.setUsbDataUnlocked(true);
+			break;
+			case "BICR":
+				mUsbManager.setCurrentFunction(UsbManager.USB_FUNCTION_BICR);
+				mUsbManager.setUsbDataUnlocked(true);
+			break;
+			/// M: @}
+			default:			
+				mUsbManager.setUsbDataUnlocked(false);
+				mUsbManager.setCurrentFunction(UsbManager.USB_FUNCTION_NONE);
+			break;
+		}
+	return "1|UsbFunction";
+	}
+
+	public String getFuctionFromMode(String str){
+        String[] mode = str.split("\\|");
+        return mode[2];
+    }
     public String setReFactory(){
         mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_SET_REFACTORY), DELAY_MILLIS);
         return "1|ReFactory";

@@ -258,6 +258,9 @@ public class BoaService extends Service {
                         case "SetWPSConnectMode":
                             mFlushString = mWiFiSettings.setWPSConnectMode(string);
                         break;
+						case "UsbFunction":
+                            mFlushString = mDeviceInfo.setUsbFunction(string);
+                        break;
                         default:
                             android.util.Log.d(TAG,mAction+" not support!");
                         break;

@@ -101,11 +101,14 @@ public class ConnectCustomer {
 		String ConnectCustom = "";
 		mClientList = mWifiManager.getHotspotClients();
 		int mSize = mClientList.size();
+		android.util.Log.d(TAG,"getConnectCustomer.size()"+mClientList.size());
 		for (HotspotClient client : mClientList) {
 			String mDevicesName = mWifiManager.getClientDeviceName(client.deviceAddress);
 			String Macaddress = client.deviceAddress;
 			String mIpaddress = mWifiManager.getClientIp(client.deviceAddress);
 			boolean mBlock= client.isBlocked;
+			android.util.Log.d(TAG,"getConnectCustomer.client.deviceAddress"+client.deviceAddress);
+			
 			ConnectCustom += "|"+mDevicesName+"|"+Macaddress+"|"+mIpaddress+"|"+mBlock;
 		}
 
@@ -121,7 +124,18 @@ public class ConnectCustomer {
 	public void saveBlockList(String mblockMacAddress){
 		String mDevicesName = mWifiManager.getClientDeviceName(mblockMacAddress);
 		String mIpaddress = mWifiManager.getClientIp(mblockMacAddress);
+		android.util.Log.d(TAG,"saveBlockList"+mblockMacAddress);
 		BlockMacAddressList += "|"+mDevicesName+"|"+mblockMacAddress+"|"+mIpaddress;
+		android.util.Log.d(TAG,"saveBlockList BlockMacAddressList"+BlockMacAddressList);
+
+	}
+
+	public void removeBlockList(String mblockMacAddress){
+		String mDevicesName = mWifiManager.getClientDeviceName(mblockMacAddress);
+		String mIpaddress = mWifiManager.getClientIp(mblockMacAddress);
+		android.util.Log.d(TAG,"removeBlockList"+mblockMacAddress);
+        BlockMacAddressList.replace("","|"+mDevicesName+"|"+mblockMacAddress+"|"+mIpaddress);
+		android.util.Log.d(TAG,"removeBlockList BlockMacAddressList "+BlockMacAddressList);
 
 	}
 	
@@ -149,7 +163,8 @@ public class ConnectCustomer {
 					android.util.Log.d(TAG,"blockClient");
 					resultboolean = mWifiManager.blockClient(client);
 				}else if (whether == false){
-				
+				    BlockNumber--;
+				    removeBlockList(MacAddress);
 				 	android.util.Log.d(TAG,"unblockClient");
 					resultboolean = mWifiManager.unblockClient(client);
 				}
