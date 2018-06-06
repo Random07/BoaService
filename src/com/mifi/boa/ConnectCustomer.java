@@ -134,7 +134,7 @@ public class ConnectCustomer {
 		String mDevicesName = mWifiManager.getClientDeviceName(mblockMacAddress);
 		String mIpaddress = mWifiManager.getClientIp(mblockMacAddress);
 		android.util.Log.d(TAG,"removeBlockList"+mblockMacAddress);
-        BlockMacAddressList.replace("","|"+mDevicesName+"|"+mblockMacAddress+"|"+mIpaddress);
+        BlockMacAddressList.replace("|"+mDevicesName+"|"+mblockMacAddress+"|"+mIpaddress,"");
 		android.util.Log.d(TAG,"removeBlockList BlockMacAddressList "+BlockMacAddressList);
 
 	}
