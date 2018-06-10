@@ -5,6 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.util.Log;
+import android.hardware.usb.UsbManager;
+import android.net.ConnectivityManager;
+import static android.net.ConnectivityManager.TETHERING_USB;
 
 public class UserDataReceiver extends BroadcastReceiver {
     static final String TAG = "BoaService_UserDataReceiver";
@@ -35,6 +38,15 @@ public class UserDataReceiver extends BroadcastReceiver {
             mUserDataHandler.resetDataLimit();
         }else if("android.intent.action.BOOT_COMPLETED".equals(action)){
             mUserDataHandler.checkResetDataLimit();
+        }else if("android.hardware.usb.action.USB_STATE".equals(action)){
+            ConnectivityManager mCm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            boolean mUsbConnected = intent.getBooleanExtra(UsbManager.USB_CONNECTED, false);
+            Log.d(TAG, "mUsbConnected : " + mUsbConnected);
+            if(mUsbConnected){
+                mCm.startTethering(TETHERING_USB, true, null, null);
+            }else{
+                mCm.stopTethering(TETHERING_USB);
+            }
         }
 
         Log.d(TAG, "mRet: " + mRet);
