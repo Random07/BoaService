@@ -215,6 +215,24 @@ public class DeviceInfo {
         String[] mode = str.split("\\|");
         return mode[2];
     }
+
+	public String getUsbFunction(){
+        if (mUsbManager.isFunctionEnabled(UsbManager.USB_FUNCTION_MTP)) {
+            return "1|GetUsbMode|MTP";
+        } else if (mUsbManager.isFunctionEnabled(UsbManager.USB_FUNCTION_PTP)) {
+            return "1|GetUsbMode|PTP";
+        } else if (mUsbManager.isFunctionEnabled(UsbManager.USB_FUNCTION_MIDI)) {
+            return "1|GetUsbMode|MIDI";
+        /// M: Add for Built-in CD-ROM and USB Mass Storage @{
+        } else if (mUsbManager.isFunctionEnabled(UsbManager.USB_FUNCTION_MASS_STORAGE)) {
+            return "1|GetUsbMode|STORAGE";
+        } else if (mUsbManager.isFunctionEnabled(UsbManager.USB_FUNCTION_BICR)) {
+            return "1|GetUsbMode|BICR";
+        /// M: @}
+        }
+        return "1|GetUsbMode|NONE"; // ...
+    }
+
     public String setReFactory(){
         mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_SET_REFACTORY), DELAY_MILLIS);
         return "1|ReFactory";

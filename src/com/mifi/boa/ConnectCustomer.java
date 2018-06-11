@@ -118,7 +118,7 @@ public class ConnectCustomer {
 	
 	public String getBlockCustomerList(){
 
-	return "1|GetBlockList|"+BlockNumber+"|"+BlockMacAddressList;
+	return "1|GetBlockList|"+BlockNumber+BlockMacAddressList;
 	}
 
 	public void saveBlockList(String mblockMacAddress){
