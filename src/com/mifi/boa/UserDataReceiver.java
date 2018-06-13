@@ -7,11 +7,36 @@ import android.content.IntentFilter;
 import android.util.Log;
 import android.hardware.usb.UsbManager;
 import android.net.ConnectivityManager;
+import android.os.Handler;
 import static android.net.ConnectivityManager.TETHERING_USB;
+import android.os.SystemProperties;
 
 public class UserDataReceiver extends BroadcastReceiver {
     static final String TAG = "BoaService_UserDataReceiver";
+    static final String USB_CONFIG_PROPERTY = "sys.usb.config";
+    static final int MODE_DATA_NONE   = 0x00 << 1;
+    static final int MODE_DATA_MTP    = 0x01 << 1;
+    static final int MODE_DATA_PTP    = 0x02 << 1;
+    static final int MODE_DATA_MIDI   = 0x03 << 1;
+    static final int MODE_DATA_MASS_STORAGE = 0x04 << 1;
+    static final int MODE_DATA_BICR   = 0x05 << 1;
+    static boolean bUsbInsert = false;
     private UserDataHandler mUserDataHandler;
+    private Handler mHandler = new Handler();
+    private OnStartTetheringCallback mStartTetheringCallback = new OnStartTetheringCallback();
+
+    private static final class OnStartTetheringCallback extends
+        ConnectivityManager.OnStartTetheringCallback {
+        @Override
+        public void onTetheringStarted() {
+            Log.d(TAG,"onTetheringStarted");
+        }
+
+        @Override
+        public void onTetheringFailed() {
+            Log.d(TAG,"onTetheringFailed");
+        }
+    }
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -41,12 +66,19 @@ public class UserDataReceiver extends BroadcastReceiver {
         }else if("android.hardware.usb.action.USB_STATE".equals(action)){
             ConnectivityManager mCm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
             boolean mUsbConnected = intent.getBooleanExtra(UsbManager.USB_CONNECTED, false);
-            Log.d(TAG, "mUsbConnected : " + mUsbConnected);
+            int  mUsbMode = getUsbDataMode();
+            Log.d(TAG, "mUsbConnected : " + mUsbConnected + ", bUsbInsert = " + bUsbInsert + ", mUsbMode = " + mUsbMode);
+
             if(mUsbConnected){
-                mCm.startTethering(TETHERING_USB, true, null, null);
+                if(!bUsbInsert || mUsbMode == MODE_DATA_NONE){
+                    Log.d(TAG, "startTethering - usb");
+                    mCm.startTethering(TETHERING_USB, true, mStartTetheringCallback, mHandler);
+                }
             }else{
+                Log.d(TAG, "stopTethering - usb");
                 mCm.stopTethering(TETHERING_USB);
             }
+            bUsbInsert = mUsbConnected;
         }
 
         Log.d(TAG, "mRet: " + mRet);
@@ -56,5 +88,21 @@ public class UserDataReceiver extends BroadcastReceiver {
         }else{
             Log.d(TAG, "Do not send result!");
         }
+    }
+
+    public int getUsbDataMode() {
+        String functions = SystemProperties.get(USB_CONFIG_PROPERTY);
+        if (UsbManager.containsFunction(functions, UsbManager.USB_FUNCTION_MTP)) {
+            return MODE_DATA_MTP;
+        } else if (UsbManager.containsFunction(functions, UsbManager.USB_FUNCTION_PTP)) {
+            return MODE_DATA_PTP;
+        } else if (UsbManager.containsFunction(functions, UsbManager.USB_FUNCTION_MIDI)) {
+            return MODE_DATA_MIDI;
+        } else if (UsbManager.containsFunction(functions, UsbManager.USB_FUNCTION_MASS_STORAGE)) {
+            return MODE_DATA_MASS_STORAGE;
+        } else if (UsbManager.containsFunction(functions, UsbManager.USB_FUNCTION_BICR)) {
+            return MODE_DATA_BICR;
+        }
+        return MODE_DATA_NONE;
     }
 }
