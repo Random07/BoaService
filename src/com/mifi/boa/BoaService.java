@@ -264,6 +264,9 @@ public class BoaService extends Service {
                         case "GetUsbMode":
                             mFlushString = mDeviceInfo.getUsbFunction();
                         break;
+						case "FotaUpdate":
+                            mFlushString = mDeviceInfo.setFotaupdate();
+                        break;
                         default:
                             android.util.Log.d(TAG,mAction+" not support!");
                         break;

@@ -238,6 +238,13 @@ public class DeviceInfo {
         return "1|ReFactory";
     }
 
+	public String setFotaupdate(){
+        Intent intent = new Intent();
+        intent.setAction("4GMIFI.FotaUpdate");
+        mContext.sendBroadcast(intent);
+        return "1|Fotaupdate";
+    }
+
     private class MyPhoneStateListener extends PhoneStateListener  {
         public int mRsrp;
 
