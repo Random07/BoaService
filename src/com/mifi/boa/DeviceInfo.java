@@ -92,7 +92,7 @@ public class DeviceInfo {
     public String getDeviceInfo(){
         String mSimNumber = telephonyManager.getLine1Number();
         String mDeviceIMEI = telephonyManager.getDeviceId();
-        String phonenumber = telephonyManager.getLine1Number();
+        String iccid = telephonyManager.getSimSerialNumber();
         String mSSID = mWifiManager.getWifiApConfiguration().getPrintableSsid();
         //String mSSID = mWifiManager.getWifiApConfiguration().SSID;
         int mMaxConnect = System.getInt(mContext.getContentResolver(),WIFI_HOTSPOT_MAX_CLIENT_NUM,5);
@@ -103,7 +103,7 @@ public class DeviceInfo {
         String mFirmwareVersion = "1.1";
         String mHwVersion ="1.0";
 		
-        return "1|"+"DeviceInfo|"+mSimNumber+"|"+mDeviceIMEI+"|"+phonenumber+"|"+mSSID+"|"+mMaxConnect+"|"+mIpAddress+"|"+mMacAddress+"|"+mFirmwareVersion+"|"+mHwVersion;
+        return "1|"+"DeviceInfo|"+mSimNumber+"|"+mDeviceIMEI+"|"+iccid+"|"+mSSID+"|"+mMaxConnect+"|"+mIpAddress+"|"+mMacAddress+"|"+mFirmwareVersion+"|"+mHwVersion;
     }
 
     private String getIpAddresses() {
