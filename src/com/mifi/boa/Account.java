@@ -37,7 +37,7 @@ public class Account {
         }
 
         Log.d(TAG,"strDate = " + strDate + ", isAccountValid = " + bRet);
-        return bRet;
+        return true; // bRet;
     }
 
     public void setUserName(String mUserName){
