@@ -58,5 +58,11 @@
             </intent-filter>
        </receiver>
 
+       <receiver android:name=".SimSelectNotification">
+            <intent-filter>
+                <action android:name="android.intent.action.ACTION_SUBINFO_RECORD_UPDATED"></action>
+            </intent-filter>
+        </receiver>
+
     </application>
 </manifest>
