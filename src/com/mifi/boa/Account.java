@@ -71,7 +71,7 @@ public class Account {
 		WifiManager mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
         WifiConfiguration mWifiConfig = mWifiManager.getWifiApConfiguration();
         String mWifiName = mWifiConfig.getPrintableSsid();
-		if(mWifiName.equals(mData[2])) return 0|SetAccountInfo;
+		if(mWifiName.equals(mData[2])) return "0|SetAccountInfo";
         setUserName(mData[2]);
         setPassWord(mData[3]);
         if(getUserName().equals(mData[2]) && getPassWord().equals(mData[3])){
