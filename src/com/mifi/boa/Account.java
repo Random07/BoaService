@@ -6,6 +6,8 @@ import android.text.TextUtils;
 import android.util.Log;
 import java.util.Date;
 import java.text.SimpleDateFormat;
+import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiManager;
 
 public class Account {
     final String TAG = "BoaService_Account";
@@ -66,7 +68,10 @@ public class Account {
         if(mData.length < 4 || TextUtils.isEmpty(mData[2]) || TextUtils.isEmpty(mData[3])){
             return ("0|SetAccountInfo");
         }
-
+		WifiManager mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+        WifiConfiguration mWifiConfig = mWifiManager.getWifiApConfiguration();
+        String mWifiName = mWifiConfig.getPrintableSsid();
+		if(mWifiName.equals(mData[2])) return 0|SetAccountInfo;
         setUserName(mData[2]);
         setPassWord(mData[3]);
         if(getUserName().equals(mData[2]) && getPassWord().equals(mData[3])){
