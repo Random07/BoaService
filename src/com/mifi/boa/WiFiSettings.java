@@ -67,6 +67,8 @@ public class WiFiSettings {
     
     public String setWiFiInfo(String str){
         analysisString(str);
+		String username = SystemProperties.get(MIFI_USERNAME,"Admin"); 
+		if(username.equals(mWifiName)) return 0+"|WIFISetting";
         String  mSetWifiresult= ConfigWifiAp(mWifiName,mWifiHide,mSecurityType,mPassWord,mMaxClientNum);
         return mSetWifiresult+"|WIFISetting" ;
     }

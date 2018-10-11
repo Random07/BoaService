@@ -53,7 +53,7 @@ public class Account {
     }
 
     public String getPassWord(){
-        return SystemProperties.get(MIFI_PASSWORD,"123321");
+        return SystemProperties.get(MIFI_PASSWORD,"Admin");
     }
 
     public String getPasswordAndUserName(){
