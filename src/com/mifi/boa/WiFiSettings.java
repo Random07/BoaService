@@ -14,6 +14,7 @@ import android.text.TextUtils;
 import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
+import android.os.SystemProperties;
 
 public class WiFiSettings {
     private static WiFiSettings sInstance;
@@ -25,6 +26,7 @@ public class WiFiSettings {
     static final String TAG = "WiFiSettings";
     public static final String WIFI_HOTSPOT_MAX_CLIENT_NUM = "wifi_hotspot_max_client_num";
     public static final String WIFI_HOTSPOT_AUTO_DISABLE = "wifi_hotspot_auto_disable";
+    public static final String MIFI_USERNAME = "persist.sys.user.name";
     public static final int OPEN_INDEX = 0;
     public static final int WPA_INDEX = 1;
     public static final int WPA2_INDEX = 2;
@@ -35,7 +37,6 @@ public class WiFiSettings {
     private int mMaxClientNum;
     private boolean mRestartWifiApAfterConfigChange = false;
     private TetherChangeReceiver mTetherChangeReceiver;
-
     public static WiFiSettings getInstance(Context mCont){
         if (null == sInstance) {
             sInstance = new WiFiSettings(mCont);
