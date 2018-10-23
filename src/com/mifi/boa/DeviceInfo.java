@@ -31,11 +31,11 @@ public class DeviceInfo {
     private ConnectivityManager mCM;
     private TelephonyManager telephonyManager;
     private WifiManager mWifiManager;
-    private BoaReceiver mBoaReceiver;
     private MyPhoneStateListener mMyPhoneStateListener;
     private SmsContextObserver mSmsContextObserver;
     private ConnectCustomer mConnectCustomer;
 	private UsbManager mUsbManager;
+	private WiFiSettings mWifisettings;
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -69,18 +69,18 @@ public class DeviceInfo {
      */
     public static final int DATA_ACTIVITY_DORMANT = 0x00000004;
 
-    public static DeviceInfo getInstance(Context mCont,BoaReceiver mBoaReceiver,SmsContextObserver mSmsObserver,ConnectCustomer mConnectCustomer){
+    public static DeviceInfo getInstance(Context mCont,SmsContextObserver mSmsObserver,ConnectCustomer mConnectCustomer,WiFiSettings mwificonf){
         if (null == sInstance) {
-            sInstance = new DeviceInfo(mCont,mBoaReceiver,mSmsObserver,mConnectCustomer);
+            sInstance = new DeviceInfo(mCont,mSmsObserver,mConnectCustomer,mwificonf);
         }
         return sInstance;
     }
 	
-    private DeviceInfo(Context mCont,BoaReceiver mBoaSer,SmsContextObserver mSmsObserver,ConnectCustomer mCoutomer){
+    private DeviceInfo(Context mCont,SmsContextObserver mSmsObserver,ConnectCustomer mCoutomer,WiFiSettings mwificonf){
         mContext = mCont;
-        mBoaReceiver = mBoaSer;
         mSmsContextObserver = mSmsObserver;
         mConnectCustomer= mCoutomer;
+		mWifisettings = mwificonf;
         mCM = (ConnectivityManager)mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         telephonyManager = TelephonyManager.from(mContext);
         mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
@@ -135,7 +135,6 @@ public class DeviceInfo {
     }
 
     public String getCommon(){
-	   //String mBatteryLevl = mBoaReceiver.getBatterylevl();
 	   BatteryManager battMgr = (BatteryManager) mContext.getSystemService(Context.BATTERY_SERVICE);
        int mPercent = battMgr.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
        int networkType = telephonyManager.getNetworkType();
@@ -234,7 +233,10 @@ public class DeviceInfo {
     }
 
     public String setReFactory(){
-        mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_SET_REFACTORY), DELAY_MILLIS);
+       SystemProperties.set(MIFI_USERNAME,"admin");
+	   SystemProperties.set(MIFI_PASSWORD,"admin");
+	   SystemProperties.set(MIFI_LANGUAGE,"1");
+	   mWifisettings.ConfigWifiAp("4G_MIFI",false,2,"12345678",6);  
         return "1|ReFactory";
     }
 

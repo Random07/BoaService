@@ -9,18 +9,19 @@ import android.os.BatteryManager;
 public class BoaReceiver extends BroadcastReceiver {
     static final String TAG = "BoaReceiver";
     public String batterylevl="";
+	private DeviceInfo mDeviceInfo;
     
-    public BoaReceiver() {
-
+    public BoaReceiver(DeviceInfo mDeInfo) {
+        mDeviceInfo =mDeInfo;
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
-        if (Intent.ACTION_BATTERY_CHANGED.equals(action)) {
-            batterylevl = getBatterylevlFromIntent(intent);
-            android.util.Log.d(TAG,batterylevl);
-        }
+        if (action.equals("android.intent.action.CLEAR_MIFI_DATA")) {
+           mDeviceInfo.setReFactory();
+		}
+
     }
 
     private String getBatterylevlFromIntent(Intent intent) {

@@ -47,7 +47,7 @@ public class Account {
     }
 
     public String getUserName(){
-        return SystemProperties.get(MIFI_USERNAME,"Admin");
+        return SystemProperties.get(MIFI_USERNAME,"admin");
     }
 
     public void setPassWord(String mPassWord){
@@ -55,7 +55,7 @@ public class Account {
     }
 
     public String getPassWord(){
-        return SystemProperties.get(MIFI_PASSWORD,"Admin");
+        return SystemProperties.get(MIFI_PASSWORD,"admin");
     }
 
     public String getPasswordAndUserName(){

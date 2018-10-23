@@ -61,7 +61,7 @@ public class BoaService extends Service {
         android.util.Log.d(TAG,"Service start");
 		initInstance();
         if (mBoaReceiver != null) {
-        mContext.registerReceiver(mBoaReceiver,new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
+        mContext.registerReceiver(mBoaReceiver,new IntentFilter("android.intent.action.CLEAR_MIFI_DATA"));
             }
          if (mSmsContextObserver != null) {
             getContentResolver().registerContentObserver(Uri.parse("content://sms/icc"), true, mSmsContextObserver);
@@ -88,14 +88,14 @@ public class BoaService extends Service {
 
     private void initInstance() {
         mContext = getApplication();
-        mBoaReceiver = new BoaReceiver();
         mAccount = Account.getInstance(mContext);
         mConnectCustomer = ConnectCustomer.getInstance(mContext);
         mUserData = UserData.getInstance(mContext);
         mApnSettings = ApnSettings.getInstance(mContext);
         mWiFiSettings = WiFiSettings.getInstance(mContext);
         mSmsContextObserver = SmsContextObserver.getInstance(mContext);
-        mDeviceInfo = DeviceInfo.getInstance(mContext,mBoaReceiver,mSmsContextObserver,mConnectCustomer);
+        mDeviceInfo = DeviceInfo.getInstance(mContext,mSmsContextObserver,mConnectCustomer,mWiFiSettings);
+		mBoaReceiver = new BoaReceiver(mDeviceInfo);
     }
 
     /**
