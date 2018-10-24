@@ -19,9 +19,8 @@ public class BoaReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
         if (action.equals("android.intent.action.CLEAR_MIFI_DATA")) {
-           mDeviceInfo.setReFactory();
-		}
-
+            mDeviceInfo.setReFactory();
+        }
     }
 
     private String getBatterylevlFromIntent(Intent intent) {

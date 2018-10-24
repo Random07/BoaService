@@ -28,6 +28,8 @@ public class DeviceInfo {
 	private Context mContext;
     public static final String WIFI_HOTSPOT_MAX_CLIENT_NUM = "wifi_hotspot_max_client_num";
     final String MIFI_LANGUAGE = "persist.sys.user.language";
+    final String MIFI_USERNAME = "persist.sys.user.name";
+    final String MIFI_PASSWORD = "persist.sys.user.password";
     private ConnectivityManager mCM;
     private TelephonyManager telephonyManager;
     private WifiManager mWifiManager;
@@ -80,7 +82,7 @@ public class DeviceInfo {
         mContext = mCont;
         mSmsContextObserver = mSmsObserver;
         mConnectCustomer= mCoutomer;
-		mWifisettings = mwificonf;
+        mWifisettings = mwificonf;
         mCM = (ConnectivityManager)mContext.getSystemService(Context.CONNECTIVITY_SERVICE);
         telephonyManager = TelephonyManager.from(mContext);
         mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
@@ -233,10 +235,10 @@ public class DeviceInfo {
     }
 
     public String setReFactory(){
-       SystemProperties.set(MIFI_USERNAME,"admin");
-	   SystemProperties.set(MIFI_PASSWORD,"admin");
-	   SystemProperties.set(MIFI_LANGUAGE,"1");
-	   mWifisettings.ConfigWifiAp("4G_MIFI",false,2,"12345678",6);  
+        SystemProperties.set(MIFI_USERNAME,"admin");
+        SystemProperties.set(MIFI_PASSWORD,"admin");
+        SystemProperties.set(MIFI_LANGUAGE,"1");
+        mWifisettings.ConfigWifiAp("4G_MIFI",false,2,"12345678",6);
         return "1|ReFactory";
     }
 

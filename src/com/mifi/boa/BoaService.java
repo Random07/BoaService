@@ -61,9 +61,9 @@ public class BoaService extends Service {
         android.util.Log.d(TAG,"Service start");
 		initInstance();
         if (mBoaReceiver != null) {
-        mContext.registerReceiver(mBoaReceiver,new IntentFilter("android.intent.action.CLEAR_MIFI_DATA"));
-            }
-         if (mSmsContextObserver != null) {
+            mContext.registerReceiver(mBoaReceiver,new IntentFilter("android.intent.action.CLEAR_MIFI_DATA"));
+        }
+        if (mSmsContextObserver != null) {
             getContentResolver().registerContentObserver(Uri.parse("content://sms/icc"), true, mSmsContextObserver);
         }
 		if(SystemProperties.get(USER_WIFI,"true").equals("true")){

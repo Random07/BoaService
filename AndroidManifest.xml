@@ -20,6 +20,7 @@
     
 
     <application
+        android:name="BoaApplication"
         android:allowBackup="true"
         android:persistent="true"
         android:directBootAware="true"
