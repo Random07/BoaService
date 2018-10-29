@@ -19,6 +19,7 @@ import android.os.BatteryManager;
 import android.os.Handler;
 import android.os.Message;
 import android.hardware.usb.UsbManager;
+import com.mifi.boa.BoaServiceUtils;
 
 public class DeviceInfo {
     private static final int MSG_SET_REBOOT = 1;
@@ -238,7 +239,8 @@ public class DeviceInfo {
         SystemProperties.set(MIFI_USERNAME,"admin");
         SystemProperties.set(MIFI_PASSWORD,"admin");
         SystemProperties.set(MIFI_LANGUAGE,"1");
-        mWifisettings.ConfigWifiAp("4G_MIFI",false,2,"12345678",6);
+        //mWifisettings.ConfigWifiAp("4G_MIFI",false,2,"12345678",6);
+        mWifisettings.ConfigWifiAp(BoaServiceUtils.getLocalMacAddress(mContext),false,2,"12345678",6);
         return "1|ReFactory";
     }
 

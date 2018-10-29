@@ -30,6 +30,7 @@ import android.content.IntentFilter;
 import android.net.Uri;
 import android.content.ContentResolver;
 import android.os.SystemProperties;
+import com.mifi.boa.BoaServiceUtils;
 
 
 
@@ -67,7 +68,8 @@ public class BoaService extends Service {
             getContentResolver().registerContentObserver(Uri.parse("content://sms/icc"), true, mSmsContextObserver);
         }
 		if(SystemProperties.get(USER_WIFI,"true").equals("true")){
-			mWiFiSettings.ConfigWifiAp("4G_MIFI",false,2,"12345678",6);
+			//mWiFiSettings.ConfigWifiAp("4G_MIFI",false,2,"12345678",6);
+			mWiFiSettings.ConfigWifiAp(BoaServiceUtils.getLocalMacAddress(mContext),false,2,"12345678",6);
 			SystemProperties.set(USER_WIFI,"false");
 		}
 		mWiFiSettings.startWifiAp();
