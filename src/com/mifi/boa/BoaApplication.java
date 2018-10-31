@@ -13,8 +13,8 @@ public class BoaApplication extends Application {
     @Override
     public void onCreate() {
         Log.d("BoaApplication", "Oncreate...");
-        Intent startIntent = new Intent(this, BoaService.class);
-        startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        this.startService(startIntent);
+        //Intent startIntent = new Intent(this, BoaService.class);
+        //startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        //this.startService(startIntent);
     }
 }
