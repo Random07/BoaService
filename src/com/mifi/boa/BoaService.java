@@ -59,7 +59,7 @@ public class BoaService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         // TODO Auto-generated method stub
-        android.util.Log.d(TAG,"Service start");
+        android.util.Log.d(TAG,"Service start,V1.0");
 		initInstance();
         if (mBoaReceiver != null) {
             mContext.registerReceiver(mBoaReceiver,new IntentFilter("android.intent.action.CLEAR_MIFI_DATA"));

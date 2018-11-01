@@ -55,7 +55,7 @@ public class BoaServiceUtils {
 
     private String getLocalMacAddress(String mac)
     {
-        String sRet="4G MIFI";
+        String sRet="4G_MIFI";
         int strLen = 0;
 
         Log.d(TAG, "mac = " + mac);
@@ -114,7 +114,7 @@ public class BoaServiceUtils {
             mNumRetriesSoFar++;
             Log.d(TAG, "mNumRetriesSoFar = " + mNumRetriesSoFar);
             if (mNumRetriesSoFar > MAX_NUM_RETRIES) {
-                mWiFiSettings.ConfigWifiAp("4G MIFI",false,2,"12345678",6);
+                mWiFiSettings.ConfigWifiAp("4G_MIFI",false,2,"12345678",6);
             } else {
                 startRetryTimer();
             }
