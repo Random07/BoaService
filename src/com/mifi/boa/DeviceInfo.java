@@ -119,7 +119,7 @@ public class DeviceInfo {
         String addresses = "";
         while (iter.hasNext()) {
             addresses += iter.next().getHostAddress();
-            if (iter.hasNext()) addresses += "\n";
+            if (iter.hasNext()) addresses += "/";
         }
         return addresses;
     }
