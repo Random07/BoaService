@@ -15,6 +15,7 @@ import android.content.IntentFilter;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.os.SystemProperties;
+import android.text.TextUtils;
 
 public class WiFiSettings {
     private static WiFiSettings sInstance;
@@ -67,7 +68,8 @@ public class WiFiSettings {
     }
     
     public String setWiFiInfo(String str){
-        analysisString(str);
+        String mEmpty = analysisString(str);
+        if(mEmpty.equals("0"))return "0|WIFISetting" ;
         String username = SystemProperties.get(MIFI_USERNAME,"admin");
         if((username.equals(mWifiName)) || (mPassWord != null && mPassWord.length() < 8)){
             return "0|WIFISetting";
@@ -87,13 +89,15 @@ public class WiFiSettings {
         }
     }
 
-    private void analysisString (String mStr){
+    private String analysisString (String mStr){
         String mArrayStr[] = mStr.split("\\|");
+        if(TextUtils.isEmpty(mArrayStr[2])||TextUtils.isEmpty(mArrayStr[3])||TextUtils.isEmpty(mArrayStr[4])||TextUtils.isEmpty(mArrayStr[5])||TextUtils.isEmpty(mArrayStr[6]))return "0";
         mWifiName = mArrayStr[2];
         mWifiHide = mArrayStr[3].equals("true")? true : false ;
         mSecurityType = Integer.valueOf(mArrayStr[4]);
         mPassWord = mArrayStr[5];
         mMaxClientNum = Integer.valueOf(mArrayStr[6]);
+        return "1";
     }
 
     public String ConfigWifiAp(String mSSID ,boolean mHidSSID ,int mSecurityType,String  mPasw,int mMaxCl ) {
