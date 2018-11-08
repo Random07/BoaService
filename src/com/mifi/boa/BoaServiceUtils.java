@@ -110,11 +110,13 @@ public class BoaServiceUtils {
             cancelRetryTimer();
             mNumRetriesSoFar = 0;
             mWiFiSettings.ConfigWifiAp(getLocalMacAddress(mac),false,2,"12345678",6);
+			mWiFiSettings.startWifiAp();
         }else{
             mNumRetriesSoFar++;
             Log.d(TAG, "mNumRetriesSoFar = " + mNumRetriesSoFar);
             if (mNumRetriesSoFar > MAX_NUM_RETRIES) {
                 mWiFiSettings.ConfigWifiAp("4G_MIFI",false,2,"12345678",6);
+				mWiFiSettings.startWifiAp();
             } else {
                 startRetryTimer();
             }

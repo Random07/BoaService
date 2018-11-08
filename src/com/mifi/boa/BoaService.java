@@ -72,7 +72,7 @@ public class BoaService extends Service {
 			BoaServiceUtils.getInstance(mContext).ConfigWifiAp(mWiFiSettings);
 			SystemProperties.set(USER_WIFI,"false");
 		}
-		mWiFiSettings.startWifiAp();
+		//mWiFiSettings.startWifiAp();
         new ServerListener().start();		
         return START_STICKY;
     }
