@@ -19,6 +19,7 @@ public class BoaServiceUtils {
     private static BoaServiceUtils sInstance;
     private int mNumRetriesSoFar;
     private WiFiSettings mWiFiSettings;
+    private boolean bNeedStartWifiAp;
     private Context mContext;
 
     private final Handler mHandler = new Handler(Looper.getMainLooper()) {
@@ -47,9 +48,10 @@ public class BoaServiceUtils {
         mContext = mCont;
     }
 
-    public void ConfigWifiAp(WiFiSettings mwificonf){
+    public void ConfigWifiAp(WiFiSettings mwificonf, boolean bStartWifiAp){
         mNumRetriesSoFar = 0;
         mWiFiSettings = mwificonf;
+        bNeedStartWifiAp = bStartWifiAp;
         onRetryTimeout();
     }
 
@@ -110,13 +112,17 @@ public class BoaServiceUtils {
             cancelRetryTimer();
             mNumRetriesSoFar = 0;
             mWiFiSettings.ConfigWifiAp(getLocalMacAddress(mac),false,2,"12345678",6);
-			mWiFiSettings.startWifiAp();
+            if(bNeedStartWifiAp){
+                mWiFiSettings.startWifiAp();
+            }
         }else{
             mNumRetriesSoFar++;
             Log.d(TAG, "mNumRetriesSoFar = " + mNumRetriesSoFar);
             if (mNumRetriesSoFar > MAX_NUM_RETRIES) {
                 mWiFiSettings.ConfigWifiAp("4G_MIFI",false,2,"12345678",6);
-				mWiFiSettings.startWifiAp();
+                if(bNeedStartWifiAp){
+                    mWiFiSettings.startWifiAp();
+                }
             } else {
                 startRetryTimer();
             }

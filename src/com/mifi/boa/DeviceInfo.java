@@ -240,7 +240,7 @@ public class DeviceInfo {
         SystemProperties.set(MIFI_PASSWORD,"admin");
         SystemProperties.set(MIFI_LANGUAGE,"1");
         //mWifisettings.ConfigWifiAp("4G_MIFI",false,2,"12345678",6);
-        BoaServiceUtils.getInstance(mContext).ConfigWifiAp(mWifisettings);
+        BoaServiceUtils.getInstance(mContext).ConfigWifiAp(mWifisettings, false);
         return "1|ReFactory";
     }
 

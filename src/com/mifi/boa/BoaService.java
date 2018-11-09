@@ -59,7 +59,7 @@ public class BoaService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         // TODO Auto-generated method stub
-        android.util.Log.d(TAG,"Service start,V1.0");
+        android.util.Log.d(TAG,"Service start,V1.3");
 		initInstance();
         if (mBoaReceiver != null) {
             mContext.registerReceiver(mBoaReceiver,new IntentFilter("android.intent.action.CLEAR_MIFI_DATA"));
@@ -69,10 +69,11 @@ public class BoaService extends Service {
         }
 		if(SystemProperties.get(USER_WIFI,"true").equals("true")){
 			//mWiFiSettings.ConfigWifiAp("4G_MIFI",false,2,"12345678",6);
-			BoaServiceUtils.getInstance(mContext).ConfigWifiAp(mWiFiSettings);
+			BoaServiceUtils.getInstance(mContext).ConfigWifiAp(mWiFiSettings, true);
 			SystemProperties.set(USER_WIFI,"false");
+		}else{
+		    mWiFiSettings.startWifiAp();
 		}
-		//mWiFiSettings.startWifiAp();
         new ServerListener().start();		
         return START_STICKY;
     }
