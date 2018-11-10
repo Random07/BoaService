@@ -9,6 +9,7 @@ import com.mifi.boa.WiFiSettings;
 import android.os.Handler;
 import android.os.Message;
 import android.os.Looper;
+import java.util.Random;
 
 public class BoaServiceUtils {
     private final String TAG = "BoaService_Utils";
@@ -52,7 +53,21 @@ public class BoaServiceUtils {
         mNumRetriesSoFar = 0;
         mWiFiSettings = mwificonf;
         bNeedStartWifiAp = bStartWifiAp;
-        onRetryTimeout();
+        mWiFiSettings.ConfigWifiAp(getMiFiName(),false,2,"12345678",6);
+        if(bNeedStartWifiAp){
+            mWiFiSettings.startWifiAp();
+        }
+        //onRetryTimeout();
+    }
+
+    private String getMiFiName(){
+        String mMifiName="4G_MIFI";
+        int strLen = 0;
+        Random random = new Random();
+
+        mMifiName = mMifiName + "_" + random.nextInt(1000000);
+        Log.d(TAG, "return mMifiName = " + mMifiName);
+        return mMifiName;
     }
 
     private String getLocalMacAddress(String mac)
