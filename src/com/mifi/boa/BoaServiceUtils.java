@@ -63,9 +63,11 @@ public class BoaServiceUtils {
     private String getMiFiName(){
         String mMifiName="4G_MIFI";
         int strLen = 0;
-        Random random = new Random();
-
-        mMifiName = mMifiName + "_" + random.nextInt(1000000);
+        StringBuffer result = new StringBuffer();
+		for(int i=0;i<6;i++) {
+			result.append(Integer.toHexString(new Random().nextInt(16)));
+		}
+		mMifiName = mMifiName + "_" + result.toString().toUpperCase();
         Log.d(TAG, "return mMifiName = " + mMifiName);
         return mMifiName;
     }
