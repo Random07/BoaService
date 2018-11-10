@@ -13,8 +13,8 @@ import android.os.Looper;
 public class BoaServiceUtils {
     private final String TAG = "BoaService_Utils";
     private final int MSG_RETRY_TIMEOUT = 1;
-    private final int MAX_NUM_RETRIES = 5;
-    private final long TIME_BETWEEN_RETRIES_MILLIS = 3000;
+    private final int MAX_NUM_RETRIES = 10;
+    private final long TIME_BETWEEN_RETRIES_MILLIS = 5000;
     private final int LEN_MAC = 6;
     private static BoaServiceUtils sInstance;
     private int mNumRetriesSoFar;
